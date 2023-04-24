@@ -6,7 +6,7 @@ import MyLoading from '../../layout/MyLoading.vue'
 import { useUserStore, useWinStore } from '../../store'
 import UserDAL from '../../user/userdal'
 import AliFileCmd from '../../aliapi/filecmd'
-import { LoadScanDir, NewScanDriver, ResetScanDriver, FileNodeData, FileData } from '../ScanDAL'
+import {LoadScanDir, NewScanDriver, ResetScanDriver, FileNodeData, FileData, TreeSelectAll} from '../ScanDAL'
 import { DeleteFromSameData, GetSameFile } from './scansame'
 
 import { Checkbox as AntdCheckbox } from 'ant-design-vue'
@@ -23,11 +23,12 @@ const Processing = ref(0)
 const scanCount = ref(0)
 const totalDirCount = ref(0)
 const totalFileCount = ref(0)
-
+const isAllChecked = ref(false)
 const ScanPanData = NewScanDriver('')
+const scanType = ref('video')
 
 const checkedCount = ref(0)
-const checkedKeys = new Set<string>()
+const checkedKeys = ref(new Set<string>())
 const checkedSize = ref(0)
 const treeData = ref<FileNodeData[]>([])
 
@@ -41,7 +42,7 @@ const handleReset = () => {
 
   ResetScanDriver(ScanPanData)
 
-  checkedKeys.clear()
+  checkedKeys.value.clear()
   checkedCount.value = 0
   checkedSize.value = 0
   treeData.value = []
@@ -64,21 +65,37 @@ const RefreshTree = () => {
   showData = showData.sort((a, b) => b.files[0].size - a.files[0].size)
   Object.freeze(showData)
   treeData.value = showData
-  checkedKeys.clear()
+  checkedKeys.value.clear()
   checkedCount.value = 0
   checkedSize.value = 0
   scanCount.value = showData.length
 }
 
+const handleSelectAll = () => {
+    isAllChecked.value = !isAllChecked.value
+    checkedKeys.value.clear()
+    checkedSize.value = 0
+    checkedCount.value = 0
+    treeData.value.forEach((node) => {
+        node.files.forEach((file) => {
+            if (isAllChecked.value) {
+                checkedKeys.value.add(file.file_id)
+                checkedSize.value += file.size
+                checkedCount.value += 1
+            }
+        })
+    })
+}
+
 const handleCheck = (file_id: string) => {
-  if (checkedKeys.has(file_id)) checkedKeys.delete(file_id)
-  else checkedKeys.add(file_id)
+  if (checkedKeys.value.has(file_id)) checkedKeys.value.delete(file_id)
+  else checkedKeys.value.add(file_id)
   treeData.value = treeData.value.concat() 
-  checkedCount.value = checkedKeys.size
+  checkedCount.value = checkedKeys.value.size
   let size = 0
   treeData.value.map((t) => {
     t.files.map((f) => {
-      if (checkedKeys.has(f.file_id)) size += f.size
+      if (checkedKeys.value.has(f.file_id)) size += f.size
       return true
     })
     return true
@@ -93,12 +110,11 @@ const handleDelete = () => {
     return
   }
   delLoading.value = true
-  const idList = Array.from(checkedKeys)
+  const idList = Array.from(checkedKeys.value)
   AliFileCmd.ApiTrashBatch(user.user_id, user.default_drive_id, idList).then((success: string[]) => {
     delLoading.value = false
-    
     DeleteFromSameData(ScanPanData, idList)
-    checkedKeys.clear()
+    checkedKeys.value.clear()
     checkedCount.value = 0
     checkedSize.value = 0
     RefreshTree()
@@ -147,11 +163,7 @@ const handleScan = () => {
       Processing.value = 0
     })
 }
-
-const scanType = ref('video')
 </script>
-
-<script lang="ts"></script>
 
 <template>
   <div class="scanfill rightbg">
@@ -181,6 +193,7 @@ const scanType = ref('video')
 
     <div class="settingcard scanauto" style="padding: 4px; margin-top: 4px">
       <a-row justify="space-between" align="center" style="margin: 12px; height: 28px; flex-grow: 0; flex-shrink: 0; flex-wrap: nowrap; overflow: hidden">
+        <AntdCheckbox :disabled="scanLoaded == false" :checked="isAllChecked" style="margin-left: 12px; margin-right: 12px" @click.stop.prevent="handleSelectAll">全选</AntdCheckbox>
         <span v-if="scanLoaded" class="checkedInfo">已选中 {{ checkedCount }} 个文件 {{ humanSize(checkedSize) }}</span>
 
         <span v-else-if="totalDirCount > 0" class="checkedInfo">正在列出文件 {{ Processing }} / {{ totalDirCount }}</span>

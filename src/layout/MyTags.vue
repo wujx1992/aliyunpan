@@ -12,7 +12,7 @@ export default defineComponent({
       const arr: string[] = []
       value?.forEach((val: string) => {
         if (val != delVal) {
-          if (arr.includes(val as string) == false) {
+          if (!arr.includes(val as string)) {
             arr.push(val as string)
           }
         }
@@ -27,9 +27,9 @@ export default defineComponent({
       const value = props.value
       const arr: string[] = []
       value?.forEach((val) => {
-        if (arr.includes(val as string) == false) arr.push(val as string)
+        if (!arr.includes(val as string)) arr.push(val as string)
       })
-      if (arr.includes(val) == false) arr.push(val)
+      if (!arr.includes(val)) arr.push(val)
       addVal.value = ''
       context.emit('update:value', arr)
     }
@@ -42,7 +42,7 @@ export default defineComponent({
 <template>
   <div class="mytags">
     <a-tag v-for="item in value" :key="item" closable color="red" tabindex="-1" @close="del(item)">{{ item }}</a-tag>
-    <a-input-search v-model:model-value="addVal" tabindex="-1" :style="{ width: '120px' }" size="small" button-text="添加" search-button @search="add" @press-enter="add(addVal)" />
+    <a-input-search v-model:model-value="addVal" tabindex="-1" :style="{ width: '200px' }" button-text="添加" search-button @search="add" @press-enter="add(addVal)" />
   </div>
 </template>
 <style>
@@ -52,7 +52,7 @@ export default defineComponent({
   user-select: none;
 }
 .mytags .arco-input-search {
-  height: 24px;
+  height: 30px;
   margin-right: 8px;
   margin-bottom: 4px;
 }
@@ -70,7 +70,7 @@ export default defineComponent({
   font-size: 12px;
 }
 .mytags .arco-input-search .arco-input-append .arco-input-search-btn {
-  height: 23px;
+  height: 28px;
   padding: 0 5px;
   font-size: 12px;
 }

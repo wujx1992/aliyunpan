@@ -31,14 +31,14 @@ const appStore = useAppStore()
           <template #icon><i class="iconfont iconcloud_success" /></template>
           已上传完
         </a-menu-item>
-        <a-menu-item key="SyncRight">
-          <template #icon><i class="iconfont iconcloud-sync" /></template>
-          文件夹同步 x
-        </a-menu-item>
-        <a-menu-item key="M3U8Right">
-          <template #icon><i class="iconfont iconluxiang" /></template>
-          M3U8视频 x
-        </a-menu-item>
+<!--        <a-menu-item key="SyncRight">-->
+<!--          <template #icon><i class="iconfont iconcloud-sync" /></template>-->
+<!--          文件夹同步 x-->
+<!--        </a-menu-item>-->
+<!--        <a-menu-item key="M3U8Right">-->
+<!--          <template #icon><i class="iconfont iconluxiang" /></template>-->
+<!--          M3U8视频 x-->
+<!--        </a-menu-item>-->
       </a-menu>
     </a-layout-sider>
     <a-layout-content class="xbyright">

@@ -27,10 +27,10 @@ const appStore = useAppStore()
           <template #icon><i class="iconfont iconcameraadd" /></template>
           视频文件洗码
         </a-menu-item>
-        <a-menu-item key="RssJiaMi">
-          <template #icon><i class="iconfont iconsafebox" /></template>
-          文件加密 x
-        </a-menu-item>
+<!--        <a-menu-item key="RssJiaMi">-->
+<!--          <template #icon><i class="iconfont iconsafebox" /></template>-->
+<!--          文件加密 x-->
+<!--        </a-menu-item>-->
         <a-menu-item key="RssScanClean">
           <template #icon><i class="iconfont iconclear" /></template>
           扫描大文件
@@ -51,10 +51,10 @@ const appStore = useAppStore()
           <template #icon><i class="iconfont iconchuanshu2" /></template>
           网盘相册间复制
         </a-menu-item>
-        <a-menu-item key="RssUserCopy">
-          <template #icon><i class="iconfont iconyonghu" /></template>
-          帐号间复制 x
-        </a-menu-item>
+<!--        <a-menu-item key="RssUserCopy">-->
+<!--          <template #icon><i class="iconfont iconyonghu" /></template>-->
+<!--          帐号间复制 x-->
+<!--        </a-menu-item>-->
       </a-menu>
     </a-layout-sider>
     <a-layout-content>
