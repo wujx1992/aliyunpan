@@ -536,6 +536,11 @@
     "@types/minimatch" "*"
     "@types/node" "*"
 
+"@types/howler@^2.2.7":
+  version "2.2.7"
+  resolved "https://registry.yarnpkg.com/@types/howler/-/howler-2.2.7.tgz#5acfbed57f9e1d99b8dabe1b824729e1c1ea1fae"
+  integrity sha512-PEZldwZqJJw1PWRTpupyC7ajVTZA8aHd8nB/Y0n6zRZi5u8ktYDntsHj13ltEiBRqWwF06pASxBEvCTxniG8eA==
+
 "@types/lodash@^4.14.184":
   version "4.14.185"
   resolved "https://registry.npmmirror.com/@types/lodash/-/lodash-4.14.185.tgz#c9843f5a40703a8f5edfd53358a58ae729816908"
@@ -930,10 +935,10 @@ array-tree-filter@^2.1.0:
   resolved "https://registry.npmmirror.com/array-tree-filter/-/array-tree-filter-2.1.0.tgz#873ac00fec83749f255ac8dd083814b4f6329190"
   integrity sha512-4ROwICNlNw/Hqa9v+rk5h22KjmzB1JGTMVKP2AKJBOCgb0yL0ASf0+YvCcLNNwquOHNX48jkeZIJ3a+oOQqKcw==
 
-artplayer@^4.6.2:
-  version "4.6.2"
-  resolved "https://registry.yarnpkg.com/artplayer/-/artplayer-4.6.2.tgz#d56c2887c10086f339722e025e9ece881561aaa9"
-  integrity sha512-9RMfFFy2wGgHUCnrwk+M2Z5OiLWQcBL+YzkSBwSi6IuJG6oM+TlfJJZt09RL2iag6DNQ+AUYtB879WUHxbqfIQ==
+artplayer@^5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/artplayer/-/artplayer-5.0.1.tgz#6ccad66c1ae3b89452ae6c4df32160b32dd1bf28"
+  integrity sha512-ARBEAALhPTkvob9+BTIGIoiMrhvfeFhO+fdNPvRiQY2K0D8AkEZXwHPKJ9cwZq7ltktCCT8j+xxVM242bS/yPw==
   dependencies:
     option-validator "^2.0.6"
 
@@ -2180,6 +2185,11 @@ hosted-git-info@^4.1.0:
   integrity sha512-kyCuEOWjJqZuDbRHzL8V93NzQhwIB71oFWSyzVo+KPZI+pnQPPxucdkrOZvkLRnrf5URsQM+IJ09Dw29cRALIA==
   dependencies:
     lru-cache "^6.0.0"
+
+howler@^2.2.3:
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/howler/-/howler-2.2.3.tgz#a2eff9b08b586798e7a2ee17a602a90df28715da"
+  integrity sha512-QM0FFkw0LRX1PR8pNzJVAY25JhIWvbKMBFM4gqk+QdV+kPXOhleWGCB6AiAF/goGjIHK2e/nIElplvjQwhr0jg==
 
 html-tags@^3.1.0:
   version "3.2.0"

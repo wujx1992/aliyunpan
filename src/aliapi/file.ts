@@ -5,7 +5,7 @@ import { GetOssExpires, HanToPin } from '../utils/utils'
 import AliHttp from './alihttp'
 import { IAliFileItem, IAliGetDirModel, IAliGetFileModel, IAliGetForderSizeModel } from './alimodels'
 import AliDirFileList from './dirfilelist'
-import { IDownloadUrl, IOfficePreViewUrl, IVideoPreviewUrl, IVideoXBTUrl } from './models'
+import { ICompilationList, IDownloadUrl, IOfficePreViewUrl, IVideoPreviewUrl, IVideoXBTUrl } from './models'
 
 export default class AliFile {
   
@@ -144,6 +144,37 @@ export default class AliFile {
       DebugLog.mSaveWarning('ApiVideoPreviewUrl err=' + file_id + ' ' + (resp.code || ''))
     }
     return undefined
+  }
+
+  static async ApiListByFileInfo(user_id: string, drive_id: string, file_id: string, limit?: number): Promise<ICompilationList[] | undefined> {
+    if (!user_id || !drive_id || !file_id) return undefined
+    const url = 'adrive/v2/video/compilation/listByFileInfo'
+    const postData = { drive_id: drive_id, file_id: file_id, limit: limit || 100 }
+    const resp = await AliHttp.Post(url, postData, user_id, '')
+    const data: ICompilationList[] = []
+
+    if (AliHttp.IsSuccess(resp.code)) {
+      const items = resp.body.items || []
+      for (const item of items) {
+        data.push({
+          name: item.name,
+          type: item.type,
+          width: item.video_media_metadata?.width || 0,
+          height: item.video_media_metadata?.height || 0,
+          duration: Math.floor(item?.duration || 0),
+          category: item.category,
+          drive_id: item.drive_id,
+          file_id: item.file_id,
+          url: item.url,
+          expire_sec: GetOssExpires(item.url),
+          play_cursor: Math.floor(item?.play_cursor || 0),
+          compilation_id: item.compilation_id,
+        })
+      }
+      return data
+    } else {
+      DebugLog.mSaveWarning('ApiListByFileInfo err=' + file_id + ' ' + (resp.code || ''))
+    }
   }
 
   static async ApiAudioPreviewUrl(user_id: string, drive_id: string, file_id: string): Promise<IDownloadUrl | undefined> {

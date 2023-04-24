@@ -26,7 +26,6 @@ const appStore = useAppStore()
 const winStore = useWinStore()
 const keyboardStore = useKeyboardStore()
 const footStore = useFootStore()
-// const leftDrawerIcon = computed(() => (!panVisible ? h('i', { class: 'iconfont iconmenuoff' }) : h('i', { class: 'iconfont iconmenuon' })))
 
 const handlePanVisible = () => {
   panVisible.value = !panVisible.value
