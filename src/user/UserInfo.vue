@@ -90,7 +90,7 @@ export default defineComponent({
               <div style="padding-right: 8px" :title="item.spaceinfo">
                 <a-progress type="circle" size="mini" status="warning" :percent="item.used_size / item.total_size" />
               </div>
-              <span :title="item.user_name" style="max-width:172px;display: :inline-block;">{{ item.nick_name ? item.nick_name : item.user_name }}</span>
+              <span :title="item.user_name" style="max-width:300px;display:inline-block;">{{ item.nick_name ? item.nick_name : item.user_name }}</span>
               <a-switch size="small" :model-value="userStore.user_id == item.user_id" title="切换到这个账号" tabindex="-1" @change="(val:any) => handleUserChange(val as any,item.user_id)">
                 <template #checked> 当前 </template>
                 <template #unchecked> 选我 </template>

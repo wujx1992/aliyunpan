@@ -13,7 +13,14 @@ import { Sleep } from '../utils/format'
 import AliUploadHashPool from './uploadhashpool'
 import nodehttps from 'https'
 import path from 'path'
+import { Howl } from 'howler'
+import { useSettingStore } from '../store'
 
+const sound = new Howl({
+  src: ['./audio/upload_finished.mp3'], // 音频文件路径
+  autoplay: false, // 是否自动播放
+  volume: 1.0, // 音量，范围 0.0 ~ 1.0
+})
 
 const filePosMap = new Map<number, number>()
 let UploadSpeedTotal = 0
@@ -42,7 +49,12 @@ export default class AliUploadDisk {
         fileui.File.uploaded_is_rapid = false
         fileui.Info.up_file_id = ''
         fileui.Info.up_upload_id = ''
-        if (isSuccess) return 'success'
+        if (isSuccess) {
+          if (useSettingStore().downFinishAudio  && !sound.playing()) {
+            sound.play()
+          }
+          return 'success'
+        }
         else return '合并文件时出错，请重试'
       })
       .catch((err: any) => {
@@ -123,7 +135,12 @@ export default class AliUploadDisk {
 
     return AliUpload.UploadFileComplete(fileui.user_id, fileui.drive_id, fileui.Info.up_file_id, fileui.Info.up_upload_id, fileui.File.size, uploadInfo.sha1)
       .then((isSuccess) => {
-        if (isSuccess) return 'success'
+        if (isSuccess) {
+          if (useSettingStore().downFinishAudio && !sound.playing()) {
+            sound.play()
+          }
+          return 'success'
+        }
         else return '合并文件时出错，请重试'
       })
       .catch((err: any) => {
