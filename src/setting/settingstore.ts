@@ -245,6 +245,11 @@ function _loadSetting(val: any) {
   setting.uiShowPanMedia = defaultBool(val.uiShowPanMedia, false)
   setting.uiExitOnClose = defaultBool(val.uiExitOnClose, false)
 
+  setting.uiEnableOpenApi = defaultBool(val.uiEnableOpenApi, false)
+  setting.uiOpenApi = defaultString(val.uiOpenApi, '')
+  setting.uiOpenApiClientId = defaultString(val.uiOpenApiClientId, '')
+  setting.uiOpenApiClientSecret = defaultString(val.uiOpenApiClientSecret, '')
+
   setting.uiFolderSize = defaultBool(val.uiFolderSize, true)
   setting.uiFileOrderDuli = defaultString(val.uiFileOrderDuli, 'null')
   setting.uiTimeFolderFormate = defaultString(val.uiTimeFolderFormate, 'yyyy-MM-dd HH-mm-ss').replace('mm-dd', 'MM-dd').replace('HH-MM', 'HH-mm')
@@ -359,6 +364,7 @@ function defaultNumberSub(val: any, check: number, min: number, max: number) {
 function SaveSetting() {
   try {
     const saveStr = JSON.stringify(setting)
+    console.log('SaveSetting', saveStr)
     if (saveStr != settingstr) {
       const settingConfig = getUserDataPath('setting.config')
       writeFileSync(settingConfig, saveStr, 'utf-8')

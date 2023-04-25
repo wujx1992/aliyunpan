@@ -60,13 +60,13 @@ const refreshQrCode = async () => {
                 </template>
             </a-popover>
             <div class="settingspace"></div>
-            <a-radio-group v-if="settingStore.uiEnableOpenApi" type="button" tabindex="-1" :model-value="settingStore.uiOpenApi" @update:model-value="cb({ uiOpenApi: $event })">
+            <a-radio-group v-show="settingStore.uiEnableOpenApi" type="button" tabindex="-1" :model-value="settingStore.uiOpenApi" @update:model-value="cb({ uiOpenApi: $event })">
                 <a-radio tabindex="-1" value="qrCode">手机扫码</a-radio>
                 <a-radio tabindex="-1" value="inputToken">手动输入</a-radio>
             </a-radio-group>
             <div class="settingspace"></div>
             <template v-if="settingStore.uiEnableOpenApi">
-                <div v-if="settingStore.uiOpenApi === 'qrCode'">
+                <div v-show="settingStore.uiOpenApi === 'qrCode'">
                     <a-row class="grid-demo">
                         <a-col flex="252px">
                             <div class="settinghead">:客户端ID(ClientId)</div>
@@ -107,8 +107,9 @@ const refreshQrCode = async () => {
                             :show-loader="qrCodeLoading"/>
                     </div>
                 </div>
-                <a-textarea v-if="settingStore.uiOpenApi === 'inputToken'"
+                <a-textarea v-show="settingStore.uiOpenApi === 'inputToken'"
                             v-model="settingStore.uiOpenApiToken"
+                            @update:model-value="cb({ uiOpenApiClientId: $event })"
                             @keydown="(e:any) => e.stopPropagation()"
                             :autoSize="{ minRows: 2 }"
                             tabindex="-1"
