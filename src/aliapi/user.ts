@@ -94,7 +94,6 @@ export default class AliUser {
         user_id: token.user_id,
         name: token.user_name,
         access_token: token.access_token,
-        open_api_refresh_token: false,
         refresh: true
       })
       UserDAL.SaveUserToken(token)
@@ -140,13 +139,8 @@ export default class AliUser {
     if (AliHttp.IsSuccess(resp.code)) {
       TokenReTimeMap.set(resp.body.user_id, Date.now())
       useSettingStore().uiOpenApiToken = resp.body.access_token
-      window.WebUserToken({
-        user_id: token.user_id,
-        name: token.user_name,
-        open_api_access_token: resp.body.access_token,
-        open_api_refresh_token: true,
-        refresh: false
-      })
+      token.open_api_access_token = resp.body.access_token
+      token.open_api_refresh_token = resp.body.refresh_token
       UserDAL.SaveUserToken(token)
       return true
     } else {

@@ -92,7 +92,7 @@ const refreshQrCode = async () => {
                         <span class="opred">OpenApi</span>：阿里云盘开放平台API
                         获取AccessToken后填入即可<br />
                         <div class="hrspace"></div>
-                        <span class="opred">注意</span>：手机扫码功能未完成
+                        <span class="opred">注意</span>：手机扫码功能未测试，需要申请OpenApi
                         <div class="hrspace"></div>
                         <span class="opred">推荐</span>：采用AList提供的获取AccessToken的方式
                         <div class="hrspace"></div>
