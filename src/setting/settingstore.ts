@@ -30,7 +30,15 @@ export interface SettingState {
 
   uiExitOnClose: boolean
 
+  uiEnableOpenApi: boolean
 
+  uiOpenApi: string
+
+  uiOpenApiClientId: string
+
+  uiOpenApiClientSecret: string
+
+  uiOpenApiToken: string
 
   uiFolderSize: boolean
 
@@ -154,7 +162,11 @@ const setting: SettingState = {
   uiShowPanPath: true,
   uiShowPanMedia: false,
   uiExitOnClose: false,
-
+  uiEnableOpenApi: false,
+  uiOpenApi: 'qrCode',
+  uiOpenApiClientId: '',
+  uiOpenApiClientSecret: '',
+  uiOpenApiToken: '',
   uiFolderSize: true,
   uiFileOrderDuli: 'null',
   uiTimeFolderFormate: 'yyyy-MM-dd HH-mm-ss',

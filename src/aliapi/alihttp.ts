@@ -36,7 +36,7 @@ function BlobToBuff(body: Blob): Promise<ArrayBuffer | undefined> {
 
 function HttpCodeBreak(code: number): Boolean {
   if (code >= 200 && code <= 300) return true
-  // if (code == 400) return true
+  if (code == 400) return true
   // if (code == 401) return true
   if (code >= 402 && code <= 428) return true
   // if (code == 403) return true
@@ -61,8 +61,9 @@ function Sleep(msTime: number): Promise<{ success: true; time: number }> {
 const IsDebugHttp = false
 export default class AliHttp {
   static LimitMax = 100
-  static baseapi = 'https://api.aliyundrive.com/'
-
+  static baseApi = 'https://api.aliyundrive.com/'
+  static baseOpenApi = 'https://open.aliyundrive.com/'
+  
   static IsSuccess(code: number): Boolean {
     return code >= 200 && code <= 300
   }
@@ -154,7 +155,7 @@ export default class AliHttp {
   }
 
   static async Get(url: string, user_id: string): Promise<IUrlRespData> {
-    if (!url.startsWith('http')) url = AliHttp.baseapi + url
+    if (!url.startsWith('http') && !url.startsWith('https')) url = AliHttp.baseApi + url
     for (let i = 0; i <= 5; i++) {
       const resp = await AliHttp._Get(url, user_id)
       if (HttpCodeBreak(resp.code)) return resp
@@ -195,7 +196,7 @@ export default class AliHttp {
 
 
   static async GetString(url: string, user_id: string, fileSize: number, maxSize: number): Promise<IUrlRespData> {
-    if (!url.startsWith('http')) url = AliHttp.baseapi + url
+    if (!url.startsWith('http') && !url.startsWith('https')) url = AliHttp.baseApi + url
     for (let i = 0; i <= 5; i++) {
       const resp = await AliHttp._GetString(url, user_id, fileSize, maxSize)
       if (HttpCodeBreak(resp.code)) return resp
@@ -282,7 +283,7 @@ export default class AliHttp {
 
 
   static async GetBlob(url: string, user_id: string): Promise<IUrlRespData> {
-    if (!url.startsWith('http')) url = AliHttp.baseapi + url
+    if (!url.startsWith('http') && !url.startsWith('https')) url = AliHttp.baseApi + url
     for (let i = 0; i <= 5; i++) {
       const resp = await AliHttp._GetBlob(url, user_id)
       if (HttpCodeBreak(resp.code)) return resp
@@ -321,10 +322,12 @@ export default class AliHttp {
     })
   }
 
-  static async Post(url: string, postData: any, user_id: string, share_token: string): Promise<IUrlRespData> {
-    if (!url.startsWith('http')) url = AliHttp.baseapi + url
+  static async Post(url: string, postData: any, user_id: string, share_token: string, open_api_token?: string): Promise<IUrlRespData> {
+    if (!url.startsWith('http') && !url.startsWith('https')) {
+      url = (url.includes('adrive/v1.0') ? AliHttp.baseOpenApi : AliHttp.baseApi) + url
+    }
     for (let i = 0; i <= 5; i++) {
-      const resp = await AliHttp._Post(url, postData, user_id, share_token)
+      const resp = await AliHttp._Post(url, postData, user_id, share_token, open_api_token)
       if (resp.code == 400 &&
           (url.includes('/file/search')
           || url.includes('/file/list')
@@ -338,14 +341,15 @@ export default class AliHttp {
     return { code: 608, header: '', body: 'NetError PostLost' } as IUrlRespData
   }
 
-  private static _Post(url: string, postData: any, user_id: string, share_token: string): Promise<IUrlRespData> {
+  private static _Post(url: string, postData: any, user_id: string, share_token: string, open_api_token?: string): Promise<IUrlRespData> {
     return UserDAL.GetUserTokenFromDB(user_id).then((token) => {
       const headers: any = {}
       if (url.includes('aliyundrive')) {
         headers['Content-Type'] = 'application/json'
       }
       if (token) {
-        headers['Authorization'] = token.token_type + ' ' + token.access_token
+        headers['Authorization'] =
+            token.token_type + ' ' + (url.includes('adrive/v1.0') ? open_api_token : token.access_token)
         headers['x-request-id'] = v4().toString()
         headers['x-device-id'] = token.device_id
         headers['x-signature'] = token.signature
@@ -377,7 +381,7 @@ export default class AliHttp {
   }
 
   static async PostString(url: string, postData: any, user_id: string, share_token: string): Promise<IUrlRespData> {
-    if (!url.startsWith('http')) url = AliHttp.baseapi + url
+    if (!url.startsWith('http') && !url.startsWith('https')) url = AliHttp.baseApi + url
     for (let i = 0; i <= 5; i++) {
       const resp = await AliHttp._PostString(url, postData, user_id, share_token)
       if (HttpCodeBreak(resp.code)) return resp

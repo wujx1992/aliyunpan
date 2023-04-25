@@ -11,17 +11,33 @@ export default class AliFile {
   
   static async ApiFileInfo(user_id: string, drive_id: string, file_id: string): Promise<IAliFileItem | undefined> {
     if (!user_id || !drive_id || !file_id) return undefined
-    const url = 'v2/file/get'
-    const postData = {
-      drive_id: drive_id,
-      file_id: file_id,
-      url_expire_sec: 14400,
-      office_thumbnail_process: 'image/resize,w_400/format,jpeg',
-      image_thumbnail_process: 'image/resize,w_400/format,jpeg',
-      image_url_process: 'image/resize,w_1920/format,jpeg',
-      video_thumbnail_process: 'video/snapshot,t_106000,f_jpg,ar_auto,m_fast,w_400'
+    let url = ''
+    let open_api_token = ''
+    let postData = {}
+    if (useSettingStore().uiEnableOpenApi && useSettingStore().uiOpenApiToken !== '') {
+      url = 'adrive/v1.0/openFile/get'
+      open_api_token = useSettingStore().uiOpenApiToken
+      postData = {
+        drive_id: drive_id,
+        file_id: file_id,
+        image_thumbnail_width: 100,
+        video_thumbnail_width: 100,
+        video_thumbnail_time: 120000
+      }
+    } else {
+      url = 'v2/file/get'
+      open_api_token = ''
+      postData = {
+        drive_id: drive_id,
+        file_id: file_id,
+        url_expire_sec: 14400,
+        office_thumbnail_process: 'image/resize,w_400/format,jpeg',
+        image_thumbnail_process: 'image/resize,w_400/format,jpeg',
+        image_url_process: 'image/resize,w_1920/format,jpeg',
+        video_thumbnail_process: 'video/snapshot,t_106000,f_jpg,ar_auto,m_fast,w_400'
+      }
     }
-    const resp = await AliHttp.Post(url, postData, user_id, '')
+    const resp = await AliHttp.Post(url, postData, user_id, '', open_api_token)
 
     if (AliHttp.IsSuccess(resp.code)) {
       return resp.body as IAliFileItem
@@ -34,7 +50,7 @@ export default class AliFile {
   
   static async ApiFileInfoByPath(user_id: string, drive_id: string, file_path: string): Promise<IAliFileItem | undefined> {
     if (!user_id || !drive_id || !file_path) return undefined
-    if (file_path.startsWith('/') == false) file_path = '/' + file_path
+    if (!file_path.startsWith('/')) file_path = '/' + file_path
     const url = 'v2/file/get_by_path'
     const postData = {
       drive_id: drive_id,
@@ -64,9 +80,21 @@ export default class AliFile {
       url: '',
       size: 0
     }
-    const url = 'v2/file/get_download_url'
-    const postData = { drive_id: drive_id, file_id: file_id, expire_sec: expire_sec }
-    const resp = await AliHttp.Post(url, postData, user_id, '')
+    let url = ''
+    let open_api_token = ''
+    if (useSettingStore().uiEnableOpenApi && useSettingStore().uiOpenApiToken !== '') {
+      url = 'adrive/v1.0/openFile/getDownloadUrl'
+      open_api_token = useSettingStore().uiOpenApiToken
+    } else {
+      url = 'v2/file/get_download_url'
+      open_api_token = ''
+    }
+    const postData = {
+      drive_id: drive_id,
+      file_id: file_id,
+      expire_sec: open_api_token ? '36000' : expire_sec
+    }
+    const resp = await AliHttp.Post(url, postData, user_id, '', open_api_token)
 
     if (AliHttp.IsSuccess(resp.code)) {
       data.url = resp.body.url
@@ -87,11 +115,17 @@ export default class AliFile {
 
   static async ApiVideoPreviewUrl(user_id: string, drive_id: string, file_id: string): Promise<IVideoPreviewUrl | undefined> {
     if (!user_id || !drive_id || !file_id) return undefined
-    
-    const url = 'v2/file/get_video_preview_play_info'
-    
+    let url = ''
+    let open_api_token = ''
+    if (useSettingStore().uiEnableOpenApi && useSettingStore().uiOpenApiToken !== '') {
+      url = 'adrive/v1.0/openFile/getVideoPreviewPlayInfo'
+      open_api_token = useSettingStore().uiOpenApiToken
+    } else {
+      url = 'v2/file/get_video_preview_play_info'
+      open_api_token = ''
+    }
     const postData = { drive_id: drive_id, file_id: file_id, category: 'live_transcoding', template_id: '', get_subtitle_info: true, url_expire_sec: 14400 }
-    const resp = await AliHttp.Post(url, postData, user_id, '')
+    const resp = await AliHttp.Post(url, postData, user_id, '', open_api_token)
 
     if (resp.body.code == 'VideoPreviewWaitAndRetry') {
       message.warning('视频正在转码中，稍后重试')

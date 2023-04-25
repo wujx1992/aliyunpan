@@ -112,6 +112,123 @@ export default class AliUser {
   }
 
 
+  static async OpenApiTokenRefreshAccount(token: ITokenInfo, client_id: string, client_secret: string, showMessage: boolean): Promise<boolean> {
+    if (!token.refresh_token) return false
+    while (true) {
+      const lock = TokenLockMap.has(token.user_id)
+      if (lock) await Sleep(1000)
+      else break
+    }
+    TokenLockMap.set(token.user_id, Date.now())
+    const time = TokenReTimeMap.get(token.user_id) || 0
+    if (Date.now() - time < 1000 * 60 * 5) {
+      TokenLockMap.delete(token.user_id)
+      return true
+    }
+    const postData = {
+      refresh_token: token.refresh_token_v2,
+      grant_type: 'refresh_token',
+      client_id: client_id,
+      client_secret: client_secret
+    }
+    const url = 'https://open.aliyundrive.com/oauth/access_token'
+    const resp = await AliHttp.Post(url, postData, '', '')
+    TokenLockMap.delete(token.user_id)
+    if (AliHttp.IsSuccess(resp.code)) {
+      TokenReTimeMap.set(resp.body.user_id, Date.now())
+      // todo 功能未完成
+      window.WebUserToken({
+        user_id: token.user_id,
+        name: token.user_name,
+        access_token: token.access_token,
+        refresh: true
+      })
+      UserDAL.SaveUserToken(token)
+      return true
+    } else {
+      if (resp.body?.code != 'InvalidParameter.RefreshToken') {
+        DebugLog.mSaveWarning('ApiTokenRefreshAccount err=' + (resp.code || '') + ' ' + (resp.body?.code || ''))
+      }
+      if (showMessage) {
+        message.error('刷新账号[' + token.user_name + '] token 失败,需要重新登录')
+        UserDAL.UserLogOff(token.user_id)
+      } else {
+        UserDAL.UserClearFromDB(token.user_id)
+      }
+    }
+    return false
+  }
+
+  static async OpenApiQrCodeUrl(client_id: string, client_secret: string): Promise<string> {
+    const postData = {
+      client_id: client_id,
+      client_secret: client_secret,
+      scopes: ['user:base', 'file:all:read', 'file:all:write'],
+      width: 348,
+      height: 400,
+    }
+    const url = 'https://open.aliyundrive.com/oauth/authorize/qrcode'
+    const resp = await AliHttp.Post(url, postData, '', '')
+    if (AliHttp.IsSuccess(resp.code)) {
+      return resp.body.qrCodeUrl
+    } else {
+      return ''
+    }
+  }
+
+  static async OpenApiQrCodeStatus(qrCodeUrl: string): Promise<{}> {
+    const resp = await AliHttp.Get(qrCodeUrl + '/status', '')
+    const statusJudge = (status: string) => {
+      switch (status) {
+        case 'WaitLogin':
+          return '等待登录'
+        case 'ScanSuccess':
+          return '扫码成功'
+        case 'LoginSuccess':
+          return '登录成功'
+        case 'QRCodeExpired':
+          return '二维码超时'
+        default:
+          return status
+      }
+    }
+    if (AliHttp.IsSuccess(resp.code)) {
+      let statusCode = resp.body.status;
+      if (statusCode === 'QRCodeExpired') {
+        message.error('检测到二维码状态过期，请刷新二维码')
+        return {}
+      }
+      return {
+        authCode: statusCode === 'LoginSuccess' ? resp.body.authCode : '',
+        status: statusJudge(statusCode)
+      }
+    } else {
+      return {}
+    }
+  }
+
+  static async OpenApiLoginByAuthCode(authCode: string, client_id: string, client_secret: string) {
+    // 构造请求体
+    const postData = {
+      code: authCode,
+      grant_type: 'authorization_code',
+      client_id: client_id,
+      client_secret: client_secret
+    }
+    const url = 'https://open.aliyundrive.com/oauth/access_token'
+    const resp = await AliHttp.Post(url, postData, '', '')
+    if (AliHttp.IsSuccess(resp.code)) {
+      return {
+        accessTokenV2: resp.body.access_token,
+        refreshTokenV2: resp.body.refresh_token,
+        expiresInV2: resp.body.expires_in,
+        tokenTypeV2: resp.body.token_type
+      }
+    } else {
+      return {}
+    }
+  }
+
   static async ApiUserInfo(token: ITokenInfo): Promise<boolean> {
     if (!token.user_id) return false
     const url = 'v2/databox/get_personal_info'
