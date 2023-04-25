@@ -41,9 +41,6 @@ const refreshQrCode = async () => {
 
 <template>
     <div class="settingcard">
-        <div class="settinghead">:账号信息</div>
-
-        <div class="settingspace"></div>
         <div class="settinghead">:阿里云盘开放平台</div>
         <div class="settingrow">
             <MySwitch :value="settingStore.uiEnableOpenApi" @update:value="cb({ uiEnableOpenApi: $event })">启用OpenApi（加快视频播放和下载）</MySwitch>
@@ -53,6 +50,8 @@ const refreshQrCode = async () => {
                     <div style="min-width: 400px">
                         <span class="opred">OpenApi</span>：阿里云盘开放平台API
                         获取AccessToken后填入即可<br />
+                        <div class="hrspace"></div>
+                        <span class="opred">注意</span>：手机扫码功能未完成
                         <div class="hrspace"></div>
                         <span class="opred">推荐</span>：采用AList提供的获取AccessToken的方式
                         <div class="hrspace"></div>
