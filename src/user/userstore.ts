@@ -8,6 +8,10 @@ export interface ITokenInfo {
 
   access_token: string
   refresh_token: string
+
+  open_api_access_token: string
+  open_api_refresh_token: string
+
   signature: string
   device_id: string
   expires_in: number

@@ -5,6 +5,8 @@ import AliUser from '../aliapi/user'
 import { ref } from "vue"
 import message from "../utils/message"
 import { storeToRefs } from "pinia"
+import UserDAL from "../user/userdal"
+import { useUserStore } from "../store"
 
 const settingStore = useSettingStore()
 const qrCodeLoading = ref(false)
@@ -27,13 +29,50 @@ const refreshQrCode = async () => {
         }
     }
     setTimeout(refresh, 3000)
-    AliUser.OpenApiQrCodeUrl(uiOpenApiClientId.value, uiOpenApiClientSecret.value).then(url => {
-        qrCodeLoading.value = false
-        qrCodeUrl.value = url
-    }).catch(err => {
-        qrCodeLoading.value = false
-        qrCodeUrl.value = ''
-        message.error('获取二维码失败')
+    UserDAL.GetUserTokenFromDB(useUserStore().user_id).then((token) => {
+        if (!token) {
+            message.error('未登录账号!')
+            return
+        }
+        AliUser.OpenApiQrCodeUrl().then(url => {
+            qrCodeLoading.value = false
+            if (!url) return
+            qrCodeUrl.value = url
+            // 监听状态
+            const intervalId = setInterval(async () => {
+                const { authCode, statusCode, status }  = await AliUser.OpenApiQrCodeStatus(url)
+                if (!statusCode) {
+                    clearInterval(intervalId)
+                    return
+                }
+                if (statusCode === 'QRCodeExpired') {
+                    message.error('二维码已超时，请刷新二维码')
+                    clearInterval(intervalId)
+                    return
+                }
+                if (statusCode === 'LoginSuccess') {
+                    let { open_api_access_token, open_api_refresh_token } = await AliUser.OpenApiLoginByAuthCode(authCode)
+                    // 更新token
+                    useSettingStore().uiOpenApiToken = open_api_access_token
+                    qrCodeUrl.value = ''
+                    qrCodeLoading.value = false
+                    window.WebUserToken({
+                        user_id: token.user_id,
+                        name: token.name,
+                        open_api_access_token: open_api_access_token,
+                        refresh: false,
+                        open_api_refresh_token: true
+                    })
+                    UserDAL.SaveUserToken(token)
+                    clearInterval(intervalId)
+                    return
+                }
+            }, 1000)
+        }).catch(err => {
+            qrCodeLoading.value = false
+            qrCodeUrl.value = ''
+            message.error('获取二维码失败')
+        })
     })
 }
 
@@ -109,7 +148,7 @@ const refreshQrCode = async () => {
                 </div>
                 <a-textarea v-show="settingStore.uiOpenApi === 'inputToken'"
                             v-model="settingStore.uiOpenApiToken"
-                            @update:model-value="cb({ uiOpenApiClientId: $event })"
+                            @update:model-value="cb({ uiOpenApiToken: $event })"
                             @keydown="(e:any) => e.stopPropagation()"
                             :autoSize="{ minRows: 2 }"
                             tabindex="-1"

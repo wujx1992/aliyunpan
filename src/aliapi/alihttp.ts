@@ -6,6 +6,7 @@ import AliUser from './user'
 import message from '../utils/message'
 import DebugLog from '../utils/debuglog'
 import { v4 } from 'uuid'
+import { useSettingStore } from '../store'
 
 export interface IUrlRespData {
   code: number
@@ -96,16 +97,29 @@ export default class AliHttp {
             'DeviceSessionSignatureInvalid',
           ]
           if (errCode.includes(data.code)) isNeedLog = false
+          // 自动刷新Token
           if (data.code == 'AccessTokenInvalid') {
             if (token && window.IsMainPage) {
-              return await AliUser.ApiTokenRefreshAccount(token, true).then((isLogin: boolean) => {
-                return { code: 401, header: '', body: 'NetError 账号需要重新登录' } as IUrlRespData
-              })
+              if (!useSettingStore().uiEnableOpenApi) {
+                return await AliUser.ApiTokenRefreshAccount(token, true).then((isLogin: boolean) => {
+                  return {code: 401, header: '', body: 'NetError 账号需要重新登录'} as IUrlRespData
+                })
+              } else {
+                if (useSettingStore().uiOpenApi === 'qrCode') {
+                  return await AliUser.OpenApiTokenRefreshAccount(token, true).then((isLogin: boolean) => {
+                    return {code: 401, header: '', body: 'NetError 账号需要重新登录'} as IUrlRespData
+                  })
+                } else {
+                  message.error('OpenApiToken失效或未填写，请获取后填入')
+                  return {code: 403, header: '', body: 'OpenApiToken失效或未填写，请获取后填入'} as IUrlRespData
+                }
+              }
             } else {
               return { code: 402, header: '', body: 'NetError 账号需要重新登录' } as IUrlRespData
             }
           }
 
+          // 自动刷新Session
           if (data.code == 'UserDeviceIllegality'
               || data.code == 'UserDeviceOffline'
               || data.code == 'DeviceSessionSignatureInvalid') {
@@ -342,14 +356,14 @@ export default class AliHttp {
   }
 
   private static _Post(url: string, postData: any, user_id: string, share_token: string, open_api_token?: string): Promise<IUrlRespData> {
+    const isOpenApi = url.includes('adrive/v1.0')
     return UserDAL.GetUserTokenFromDB(user_id).then((token) => {
       const headers: any = {}
       if (url.includes('aliyundrive')) {
         headers['Content-Type'] = 'application/json'
       }
       if (token) {
-        headers['Authorization'] =
-            token.token_type + ' ' + (url.includes('adrive/v1.0') ? open_api_token : token.access_token)
+        headers['Authorization'] = token.token_type + ' ' + (isOpenApi ? open_api_token : token.access_token)
         headers['x-request-id'] = v4().toString()
         headers['x-device-id'] = token.device_id
         headers['x-signature'] = token.signature

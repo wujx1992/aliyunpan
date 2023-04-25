@@ -102,9 +102,11 @@ app.setAboutPanelOptions({
   applicationVersion: '30'
 })
 
-let userToken: { access_token: string; user_id: string; refresh: boolean } = {
+let userToken: { access_token: string; open_api_access_token: string; user_id: string; open_api_refresh_token: boolean; refresh: boolean } = {
   access_token: '',
+  open_api_access_token: '',
   user_id: '',
+  open_api_refresh_token: false,
   refresh: false
 }
 ipcMain.on('WebUserToken', (event, data) => {
@@ -128,7 +130,7 @@ app
       const shouldAliOrigin = details.url.indexOf('.aliyundrive.com') > 0
 
       const shouldAliReferer = !should115Referer && !shouldGieeReferer && (!details.referrer || details.referrer.trim() === '' || /(\/localhost:)|(^file:\/\/)|(\/127.0.0.1:)/.exec(details.referrer) !== null)
-      const shouldToken = details.url.includes('aliyundrive') && details.url.includes('download')
+      const shouldToken = (userToken.refresh || userToken.open_api_refresh_token) && details.url.includes('download')
 
       cb({
         cancel: false,
@@ -148,7 +150,7 @@ app
             Referer: 'https://www.aliyundrive.com/'
           }),
           ...(shouldToken && {
-            Authorization: userToken.access_token
+            Authorization: userToken.refresh ? userToken.access_token : userToken.open_api_access_token
           }),
           'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) aDrive/4.1.0 Chrome/108.0.5359.215 Electron/22.3.1 Safari/537.36',
           'X-Canary': 'client=windows,app=adrive,version=v4.1.0',

@@ -247,6 +247,7 @@ function _loadSetting(val: any) {
 
   setting.uiEnableOpenApi = defaultBool(val.uiEnableOpenApi, false)
   setting.uiOpenApi = defaultString(val.uiOpenApi, '')
+  setting.uiOpenApiToken = defaultString(val.uiOpenApiToken, '')
   setting.uiOpenApiClientId = defaultString(val.uiOpenApiClientId, '')
   setting.uiOpenApiClientSecret = defaultString(val.uiOpenApiClientSecret, '')
 
@@ -364,7 +365,7 @@ function defaultNumberSub(val: any, check: number, min: number, max: number) {
 function SaveSetting() {
   try {
     const saveStr = JSON.stringify(setting)
-    console.log('SaveSetting', saveStr)
+    // console.log('SaveSetting', saveStr)
     if (saveStr != settingstr) {
       const settingConfig = getUserDataPath('setting.config')
       writeFileSync(settingConfig, saveStr, 'utf-8')

@@ -77,6 +77,8 @@ export default defineComponent({
             tokenfrom: 'account' ,
             access_token: result.accessToken,
             refresh_token: result.refreshToken,
+            open_api_access_token: '',
+            open_api_refresh_token: '',
             expires_in: result.expiresIn,
             token_type: result.tokenType,
             user_id: result.userId,

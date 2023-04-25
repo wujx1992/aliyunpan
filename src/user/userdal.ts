@@ -104,6 +104,10 @@ export default class UserDAL {
       tokenfrom: 'token',
       access_token: '',
       refresh_token: '',
+
+      open_api_access_token: '',
+      open_api_refresh_token: '',
+
       expires_in: 0,
       token_type: '',
       user_id: '',
