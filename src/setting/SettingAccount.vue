@@ -54,6 +54,8 @@ const refreshQrCode = async () => {
                     let { open_api_access_token, open_api_refresh_token } = await AliUser.OpenApiLoginByAuthCode(authCode)
                     // 更新token
                     useSettingStore().uiOpenApiToken = open_api_access_token
+                    token.open_api_access_token = open_api_access_token
+                    token.open_api_refresh_token = open_api_refresh_token
                     qrCodeUrl.value = ''
                     qrCodeLoading.value = false
                     window.WebUserToken({
