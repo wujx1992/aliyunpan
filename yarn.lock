@@ -935,10 +935,10 @@ array-tree-filter@^2.1.0:
   resolved "https://registry.npmmirror.com/array-tree-filter/-/array-tree-filter-2.1.0.tgz#873ac00fec83749f255ac8dd083814b4f6329190"
   integrity sha512-4ROwICNlNw/Hqa9v+rk5h22KjmzB1JGTMVKP2AKJBOCgb0yL0ASf0+YvCcLNNwquOHNX48jkeZIJ3a+oOQqKcw==
 
-artplayer@^5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/artplayer/-/artplayer-5.0.1.tgz#6ccad66c1ae3b89452ae6c4df32160b32dd1bf28"
-  integrity sha512-ARBEAALhPTkvob9+BTIGIoiMrhvfeFhO+fdNPvRiQY2K0D8AkEZXwHPKJ9cwZq7ltktCCT8j+xxVM242bS/yPw==
+artplayer@^5.0.3:
+  version "5.0.3"
+  resolved "https://registry.yarnpkg.com/artplayer/-/artplayer-5.0.3.tgz#0e521f18fd780b410da61fe48741d32cb79aceaa"
+  integrity sha512-ropTgkzDPe1qbQiWvMajAPaQ18wWjjsGxzZATphoMZBoNRdg8wR9ZTW8IPx5q3b4r3JlJ5p3slusYMtz4X7Obg==
   dependencies:
     option-validator "^2.0.6"
 
