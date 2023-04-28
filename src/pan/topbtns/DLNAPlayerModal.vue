@@ -21,7 +21,7 @@ export default defineComponent({
       okLoading.value = true
       dlnacasts = window.require('dlnacasts2')()
       dlnacasts.on('update', function (player: any) {
-        playerList.value.push(player) 
+        playerList.value.push(player)
       })
 
       setTimeout(() => {
@@ -121,9 +121,11 @@ export default defineComponent({
     </template>
     <div class="modalbody" style="width: 440px">
       <div v-if="okLoading" style="width: 100%; display: flex; justify-content: center">
-        <a-spin dot tip="正在查找可投屏设备..." />
+        <a-spin dot tip="正在查找可投屏的设备..." />
       </div>
-
+      <div v-if="!okLoading && playerList.length === 0" style="width: 100%; display: flex; justify-content: center">
+          <a-empty description="找不到可投屏的设备" />
+      </div>
       <div class="arco-upload-list arco-upload-list-type-text">
         <div v-for="(item, index) in playerList" :key="'P' + index" class="arco-upload-list-item arco-upload-list-item-done">
           <div class="arco-upload-list-item-content">
@@ -142,15 +144,15 @@ export default defineComponent({
             </span>
           </div>
           <span class="arco-upload-list-item-operation">
-            <a-button type="outline" size="small" @click="() => handlePlay(index, 'm3u8')">播放转码</a-button>
-            <a-button type="outline" size="small" @click="() => handlePlay(index, 'raw')">播放原始</a-button>
+            <a-button type="outline" size="small" @click="handlePlay(index, 'm3u8')">播放转码</a-button>
+            <a-button type="outline" size="small" @click="handlePlay(index, 'raw')">播放原始</a-button>
           </span>
         </div>
       </div>
     </div>
     <div class="modalfoot">
       <div style="flex-grow: 1"></div>
-      <a-button type="outline" size="small" @click="handleHide">取消</a-button>
+      <a-button type="outline" size="small" @click="handleHide()">关闭</a-button>
     </div>
   </a-modal>
 </template>
