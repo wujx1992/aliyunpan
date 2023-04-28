@@ -89,8 +89,6 @@ const refreshQrCode = async () => {
             message.error('未登录账号，该功能无法开启')
             return
         }
-        token.open_api_client_id = uiOpenApiClientId.value
-        token.open_api_client_secret = uiOpenApiClientSecret.value
         AliUser.OpenApiQrCodeUrl(token).then(url => {
             qrCodeLoading.value = false
             if (!url) return
@@ -111,8 +109,6 @@ const refreshQrCode = async () => {
                     let { open_api_access_token, open_api_refresh_token } = await AliUser.OpenApiLoginByAuthCode(token, authCode)
                     // 更新token
                     useSettingStore().updateStore( {
-                        uiOpenApiClientId: uiOpenApiClientId.value,
-                        uiOpenApiClientSecret: uiOpenApiClientSecret.value,
                         uiOpenApiAccessToken: open_api_access_token,
                         uiOpenApiRefreshToken: open_api_refresh_token
                     })
