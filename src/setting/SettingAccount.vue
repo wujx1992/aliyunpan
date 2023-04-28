@@ -177,7 +177,7 @@ const refreshQrCode = async () => {
                                 <a-input v-model.trim="settingStore.uiOpenApiClientId"
                                          :style="{ width: '180px' }"
                                          placeholder="客户端ID"
-                                         @update:value="cb({ uiOpenApiClientId: $event })"
+                                         @update:model-value="cb({ uiOpenApiClientId: $event })"
                                          allow-clear/>
                             </div>
                         </a-col>
@@ -188,7 +188,7 @@ const refreshQrCode = async () => {
                                     v-model.trim="settingStore.uiOpenApiClientSecret"
                                     :style="{ width: '180px' }"
                                     placeholder="客户端密钥"
-                                    @update:value="cb({ uiOpenApiClientSecret: $event })"
+                                    @update:model-value="cb({ uiOpenApiClientSecret: $event })"
                                     allow-clear/>
                             </div>
                         </a-col>

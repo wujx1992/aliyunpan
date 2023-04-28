@@ -106,8 +106,6 @@ export default class UserDAL {
       access_token: '',
       refresh_token: '',
 
-      open_api_client_id: '',
-      open_api_client_secret: '',
       open_api_access_token: '',
       open_api_refresh_token: '',
 
@@ -201,8 +199,6 @@ export default class UserDAL {
       login: true
     })
     useSettingStore().updateStore( {
-      uiOpenApiClientId: token.open_api_client_id,
-      uiOpenApiClientSecret: token.open_api_client_secret,
       uiOpenApiAccessToken: token.open_api_access_token,
       uiOpenApiRefreshToken: token.open_api_refresh_token
     })
