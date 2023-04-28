@@ -394,7 +394,7 @@ onBeforeUnmount(() => {
       </div>
     </a-layout-header>
     <a-layout-content style="height: calc(100vh - 42px)">
-      <div id="artPlayer" style="width: 100%; height: 100%"></div>
+      <div id="artPlayer" style="width: 100%; height: 100%;text-overflow: ellipsis;white-space: nowrap;"></div>
     </a-layout-content>
   </a-layout>
 </template>
