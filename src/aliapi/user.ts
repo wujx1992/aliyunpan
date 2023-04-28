@@ -148,6 +148,13 @@ export default class AliUser {
       })
       token.open_api_access_token = resp.body.access_token
       token.open_api_refresh_token = resp.body.refresh_token
+      window.WebUserToken({
+        user_id: token.user_id,
+        name: token.user_name,
+        access_token: token.access_token,
+        open_api_access_token: token.open_api_access_token,
+        refresh: true
+      })
       UserDAL.SaveUserToken(token)
       return true
     } else {

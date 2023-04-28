@@ -200,7 +200,12 @@ export default class UserDAL {
       access_token: token.access_token,
       login: true
     })
-
+    useSettingStore().updateStore( {
+      uiOpenApiClientId: token.open_api_client_id,
+      uiOpenApiClientSecret: token.open_api_client_secret,
+      uiOpenApiAccessToken: token.open_api_access_token,
+      uiOpenApiRefreshToken: token.open_api_refresh_token
+    })
     useAppStore().resetTab()
     useMyShareStore().$reset()
     useMyFollowingStore().$reset()
@@ -258,12 +263,6 @@ export default class UserDAL {
       UserTokenMap.delete(user_id)
       return false
     }
-    useSettingStore().updateStore( {
-      uiOpenApiClientId: token.open_api_client_id,
-      uiOpenApiClientSecret: token.open_api_client_secret,
-      uiOpenApiAccessToken: token.open_api_access_token,
-      uiOpenApiRefreshToken: token.open_api_refresh_token
-    })
     await this.UserLogin(token).catch(() => {})
     return true
   }

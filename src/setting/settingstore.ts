@@ -254,10 +254,6 @@ function _loadSetting(val: any) {
   setting.uiEnableOpenApi = defaultBool(val.uiEnableOpenApi, false)
   setting.uiOpenApi = defaultString(val.uiOpenApi, '')
   setting.uiOpenApiOauthUrl = defaultString(val.uiOpenApiOauthUrl, '')
-  setting.uiOpenApiAccessToken = defaultString(val.uiOpenApiAccessToken, '')
-  setting.uiOpenApiRefreshToken = defaultString(val.uiOpenApiRefreshToken, '')
-  setting.uiOpenApiClientId = defaultString(val.uiOpenApiClientId, '')
-  setting.uiOpenApiClientSecret = defaultString(val.uiOpenApiClientSecret, '')
 
   setting.uiFolderSize = defaultBool(val.uiFolderSize, true)
   setting.uiFileOrderDuli = defaultString(val.uiFileOrderDuli, 'null')

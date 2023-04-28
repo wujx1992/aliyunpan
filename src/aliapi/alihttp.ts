@@ -100,12 +100,13 @@ export default class AliHttp {
           if (errCode.includes(data.code)) isNeedLog = false
           // 自动刷新Token
           if (data.code == 'AccessTokenInvalid') {
-            if (token && window.IsMainPage) {
-              if (!useSettingStore().uiEnableOpenApi) {
+            if (token) {
+              if (!useSettingStore().uiEnableOpenApi && window.IsMainPage) {
                 return await AliUser.ApiTokenRefreshAccount(token, true).then((isLogin: boolean) => {
                   return { code: 401, header: '', body: 'NetError 账号需要重新登录' } as IUrlRespData
                 })
-              } else {
+              }
+              if (useSettingStore().uiEnableOpenApi) {
                 return await AliUser.OpenApiTokenRefreshAccount(token, true).then((isLogin: boolean) => {
                   return { code: 401, header: '', body: 'OpenApiRefreshToken失效或未填写，请获取后填入' } as IUrlRespData
                 })
@@ -356,7 +357,6 @@ export default class AliHttp {
   }
 
   private static _Post(url: string, postData: any, user_id: string, share_token: string, need_open_api: boolean): Promise<IUrlRespData> {
-    const isOpenApi = url.includes('adrive/v1.0')
     return UserDAL.GetUserTokenFromDB(user_id).then((token) => {
       const headers: any = {}
       if (url.includes('aliyundrive')) {
