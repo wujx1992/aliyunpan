@@ -7,7 +7,7 @@ import message from "../utils/message"
 import { storeToRefs } from "pinia"
 import UserDAL from "../user/userdal"
 import { useUserStore } from "../store"
-import { openExternal } from "../utils/electronhelper"
+import { copyToClipboard, openExternal } from "../utils/electronhelper"
 
 const settingStore = useSettingStore()
 const qrCodeLoading = ref(false)
@@ -27,6 +27,20 @@ const cb = (val: any) => {
 
 const openWebUrl = () => {
     openExternal('https://alist.nn.ci/zh/guide/drivers/aliyundrive_open.html')
+}
+
+const copyCookies = async () => {
+    const cookies = await window.WebGetCookies({ url: 'https://www.aliyundrive.com'}) as []
+    if (cookies.length > 0){
+        let cookiesText = ''
+        cookies.forEach(cookie=> {
+            cookiesText += cookie['name'] + '=' +cookie['value'] + ';'
+        })
+        copyToClipboard(cookiesText)
+        message.success('当前账号的Cookies已复制到剪切板')
+    } else {
+        message.error('当前账号的Cookies不存在')
+    }
 }
 
 const refreshQrCode = async () => {
@@ -98,6 +112,13 @@ const refreshQrCode = async () => {
 
 <template>
     <div class="settingcard">
+        <div class="settinghead">:阿里云盘账号</div>
+        <div class="settingrow">
+            <a-button type="outline" size="small" tabindex="-1" @click="copyCookies()">
+               复制当前账号Cookies
+            </a-button>
+        </div>
+        <div class="settingspace"></div>
         <div class="settinghead">:阿里云盘开放平台</div>
         <div class="settingrow">
             <MySwitch :value="settingStore.uiEnableOpenApi" @update:value="cb({ uiEnableOpenApi: $event })">启用OpenApi（加快视频播放和下载）</MySwitch>

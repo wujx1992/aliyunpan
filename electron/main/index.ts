@@ -360,6 +360,9 @@ ipcMain.on('WebSaveTheme', (event, data) => {
 ipcMain.on('WebClearCookies', (event, data) => {
   session.defaultSession.clearStorageData(data)
 })
+ipcMain.handle('WebGetCookies', async (event, data) => {
+  return await session.defaultSession.cookies.get(data)
+})
 ipcMain.on('WebSetCookies', (event, data) => {
   for (let i = 0, maxi = data.length; i < maxi; i++) {
     const cookie = {
