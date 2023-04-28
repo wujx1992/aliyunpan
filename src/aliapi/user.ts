@@ -138,8 +138,8 @@ export default class AliUser {
     const postData = {
       refresh_token: token.open_api_refresh_token,
       grant_type: 'refresh_token',
-      client_id: token.open_api_client_id,
-      client_secret: token.open_api_client_secret
+      client_id: useSettingStore().uiOpenApiClientId,
+      client_secret: useSettingStore().uiOpenApiClientSecret
     }
     const resp = await AliHttp.Post(url, postData, '', '')
     OpenApiTokenLockMap.delete(token.user_id)
@@ -176,8 +176,8 @@ export default class AliUser {
 
   static async OpenApiQrCodeUrl(token: ITokenInfo): Promise<any> {
     const postData = {
-      client_id: token.open_api_client_id,
-      client_secret: token.open_api_client_secret,
+      client_id: useSettingStore().uiOpenApiClientId,
+      client_secret: useSettingStore().uiOpenApiClientSecret,
       scopes: ['user:base', 'file:all:read', 'file:all:write'],
       width: 348,
       height: 400,
@@ -227,8 +227,8 @@ export default class AliUser {
     const postData = {
       code: authCode,
       grant_type: 'authorization_code',
-      client_id: token.open_api_client_id,
-      client_secret: token.open_api_client_secret
+      client_id: useSettingStore().uiOpenApiClientId,
+      client_secret: useSettingStore().uiOpenApiClientSecret
     }
     const url = 'https://open.aliyundrive.com/oauth/access_token'
     const resp = await AliHttp.Post(url, postData, '', '')
