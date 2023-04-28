@@ -19,9 +19,9 @@ const cb = (val: any) => {
             message.info('AccessToken不能为空')
             return
         } else {
-            if (!val.uiOpenApiRefreshToken
-                && val.uiOpenApiAccessToken === ''
-                && settingStore.uiOpenApiOauthUrl === '') {
+            if (!settingStore.uiOpenApiRefreshToken
+                && settingStore.uiOpenApiAccessToken === ''
+                && val.uiOpenApiOauthUrl === '') {
                 message.info('Oauth令牌链接不能为空')
                 return
             } else if (settingStore.uiOpenApiAccessToken === '' && val.uiOpenApiRefreshToken === '') {

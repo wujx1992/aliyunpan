@@ -6,7 +6,7 @@ import message from '../utils/message'
 import { modalUserSpace } from '../utils/modal'
 export default defineComponent({
   setup() {
-    const handleUserChange = (val: boolean, user_id: string) => {
+    const handleUserChange = (val: any, user_id: string) => {
       if (val) UserDAL.UserChange(user_id)
     }
     const handleRefreshUserInfo = () => {
