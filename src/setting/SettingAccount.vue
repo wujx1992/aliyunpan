@@ -20,7 +20,6 @@ const cb = (val: any) => {
     }
     if (!val.uiOpenApiRefreshToken && settingStore.uiOpenApiOauthUrl === '') {
         message.info('Oauth令牌链接不能为空')
-        return
     }
     settingStore.updateStore(val)
 }
