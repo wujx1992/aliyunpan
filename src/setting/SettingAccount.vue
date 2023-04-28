@@ -16,7 +16,6 @@ const qrCodeUrl = ref('')
 const cb = (val: any) => {
     if (!val.uiOpenApiOauthUrl && settingStore.uiOpenApiRefreshToken === '') {
         message.info('RefreshToken不能为空')
-        return
     }
     if (!val.uiOpenApiRefreshToken && settingStore.uiOpenApiOauthUrl === '') {
         message.info('Oauth令牌链接不能为空')
