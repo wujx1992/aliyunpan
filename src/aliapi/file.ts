@@ -14,9 +14,9 @@ export default class AliFile {
     let url = ''
     let open_api_token = ''
     let postData = {}
-    if (useSettingStore().uiEnableOpenApi && useSettingStore().uiOpenApiToken !== '') {
+    if (useSettingStore().uiEnableOpenApi) {
       url = 'adrive/v1.0/openFile/get'
-      open_api_token = useSettingStore().uiOpenApiToken
+      open_api_token = useSettingStore().OpenApiAccessToken
       postData = {
         drive_id: drive_id,
         file_id: file_id,
@@ -82,9 +82,9 @@ export default class AliFile {
     }
     let url = ''
     let open_api_token = ''
-    if (useSettingStore().uiEnableOpenApi && useSettingStore().uiOpenApiToken !== '') {
+    if (useSettingStore().uiEnableOpenApi) {
       url = 'adrive/v1.0/openFile/getDownloadUrl'
-      open_api_token = useSettingStore().uiOpenApiToken
+      open_api_token = useSettingStore().OpenApiAccessToken
     } else {
       url = 'v2/file/get_download_url'
       open_api_token = ''
@@ -117,9 +117,9 @@ export default class AliFile {
     if (!user_id || !drive_id || !file_id) return undefined
     let url = ''
     let open_api_token = ''
-    if (useSettingStore().uiEnableOpenApi && useSettingStore().uiOpenApiToken !== '') {
+    if (useSettingStore().uiEnableOpenApi) {
       url = 'adrive/v1.0/openFile/getVideoPreviewPlayInfo'
-      open_api_token = useSettingStore().uiOpenApiToken
+      open_api_token = useSettingStore().OpenApiAccessToken
     } else {
       url = 'v2/file/get_video_preview_play_info'
       open_api_token = ''

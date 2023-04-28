@@ -2,7 +2,7 @@ import { getCrxPath, getResourcesPath, getStaticPath, getUserDataPath, mkAriaCon
 import { release } from 'os'
 import { AppWindow, creatElectronWindow, createMainWindow, createTray, Referer, ShowError, ShowErrorAndExit, ua } from './window'
 import Electron from 'electron'
-import { SpawnOptions } from 'child_process'
+import { execFile, SpawnOptions } from 'child_process'
 import { portIsOccupied } from './utils'
 import { app, BrowserWindow, dialog, Menu, MenuItem, ipcMain, shell, session } from 'electron'
 import { exec, spawn } from 'child_process'
@@ -513,31 +513,33 @@ async function creatAria() {
     let ariaPath = ''
     if (process.platform === 'win32') {
       ariaPath = 'aria2c.exe'
-    } else if (process.platform === 'darwin') {
-      ariaPath = 'aria2c'
-    } else if (process.platform === 'linux') {
+    } else {
       ariaPath = 'aria2c'
     }
     basePath = path.join(basePath, DEBUGGING ? process.platform : '')
-    let ariaPath2 = path.join(basePath, ariaPath)
-    if (!existsSync(ariaPath2)) {
-      ShowError('找不到Aria程序文件', ariaPath2)
+    let ariaFullPath = path.join(basePath, ariaPath)
+    if (!existsSync(ariaFullPath)) {
+      ShowError('找不到Aria程序文件', ariaFullPath)
       return 0
     }
-
-    process.chdir(basePath)
-    const options:SpawnOptions = { stdio: 'ignore', cwd: basePath, shell: true }
+    // process.chdir(basePath)
+    const options:SpawnOptions = { cwd: basePath, shell: true, windowsVerbatimArguments: true }
     const port = await portIsOccupied(16800)
-    const subprocess = spawn(
-      ariaPath,
+    const subprocess = execFile(
+        ariaFullPath,
       [
         '--stop-with-process=' + process.pid,
         '-D',
         '--conf-path=' + confPath,
-        '--listen-port=' + port
+        '--rpc-listen-port=' + port
       ],
-      options
-    )
+      options,
+        (error) => {
+          if (error) {
+            ShowError("启动Aria2c失败", error.message)
+            return 0
+          }
+        })
     return port
   } catch (e: any) {
     console.log(e)

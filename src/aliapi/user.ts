@@ -11,6 +11,8 @@ import { useSettingStore } from '../store'
 
 export const TokenReTimeMap = new Map<string, number>()
 export const TokenLockMap = new Map<string, number>()
+export const OpenApiTokenReTimeMap = new Map<string, number>()
+export const OpenApiTokenLockMap = new Map<string, number>()
 export const SessionLockMap = new Map<string, number>()
 export const SessionReTimeMap = new Map<string, number>()
 export default class AliUser {
@@ -114,31 +116,36 @@ export default class AliUser {
 
 
   static async OpenApiTokenRefreshAccount(token: ITokenInfo, showMessage: boolean): Promise<boolean> {
-    if (!token.open_api_refresh_token) return false
+    if (!token.open_api_refresh_token && !useSettingStore().uiOpenApiRefreshToken) return false
     while (true) {
-      const lock = TokenLockMap.has(token.user_id)
+      const lock = OpenApiTokenLockMap.has(token.user_id)
       if (lock) await Sleep(1000)
       else break
     }
     TokenLockMap.set(token.user_id, Date.now())
-    const time = TokenReTimeMap.get(token.user_id) || 0
-    // 3小时刷新一次
+    const time = OpenApiTokenReTimeMap.get(token.user_id) || 0
     if (Date.now() - time < 1000 * 60 * 3) {
       TokenLockMap.delete(token.user_id)
       return true
     }
+    let url = 'https://open.aliyundrive.com/oauth/access_token'
+    if (useSettingStore().uiEnableOpenApi && useSettingStore().uiOpenApiOauthUrl !== '') {
+      url = useSettingStore().uiOpenApiOauthUrl
+    }
     const postData = {
-      refresh_token: token.open_api_refresh_token,
+      refresh_token: token.open_api_refresh_token || useSettingStore().uiOpenApiRefreshToken,
       grant_type: 'refresh_token',
       client_id: useSettingStore().uiOpenApiClientId,
       client_secret: useSettingStore().uiOpenApiClientSecret
     }
-    const url = 'https://open.aliyundrive.com/oauth/access_token'
     const resp = await AliHttp.Post(url, postData, '', '')
-    TokenLockMap.delete(token.open_api_refresh_token)
+    OpenApiTokenLockMap.delete(token.user_id)
     if (AliHttp.IsSuccess(resp.code)) {
-      TokenReTimeMap.set(resp.body.user_id, Date.now())
-      useSettingStore().uiOpenApiToken = resp.body.access_token
+      OpenApiTokenReTimeMap.set(token.user_id, Date.now())
+      useSettingStore().updateStore( {
+        uiOpenApiAccessToken: resp.body.access_token,
+        uiOpenApiRefreshToken: resp.body.refresh_token
+      })
       token.open_api_access_token = resp.body.access_token
       token.open_api_refresh_token = resp.body.refresh_token
       UserDAL.SaveUserToken(token)
@@ -147,11 +154,11 @@ export default class AliUser {
       if (resp.body?.code != 'InvalidParameter.RefreshToken') {
         DebugLog.mSaveWarning('OpenApiTokenRefreshAccount err=' + (resp.code || '') + ' ' + (resp.body?.code || ''))
       }
+      if (resp.body?.code == 429) {
+        message.error('重复获取OpenApiAccessToken，请稍后再试')
+      }
       if (showMessage) {
-        message.error('刷新账号[' + token.user_name + '] open_api_token 失败, 请检查配置')
-        UserDAL.UserLogOff(token.user_id)
-      } else {
-        UserDAL.UserClearFromDB(token.user_id)
+        message.error('刷新账号[' + token.user_name + '] OpenApiToken 失败, 请检查配置')
       }
     }
     return false

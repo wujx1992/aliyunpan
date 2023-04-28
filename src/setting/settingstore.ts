@@ -38,7 +38,11 @@ export interface SettingState {
 
   uiOpenApiClientSecret: string
 
-  uiOpenApiToken: string
+  uiOpenApiOauthUrl: string
+
+  uiOpenApiAccessToken: string
+
+  uiOpenApiRefreshToken: string
 
   uiFolderSize: boolean
 
@@ -163,10 +167,12 @@ const setting: SettingState = {
   uiShowPanMedia: false,
   uiExitOnClose: false,
   uiEnableOpenApi: false,
-  uiOpenApi: 'qrCode',
+  uiOpenApi: 'inputToken',
   uiOpenApiClientId: '',
   uiOpenApiClientSecret: '',
-  uiOpenApiToken: '',
+  uiOpenApiOauthUrl: 'https://api.nn.ci/alist/ali_open/token',
+  uiOpenApiAccessToken: '',
+  uiOpenApiRefreshToken: '',
   uiFolderSize: true,
   uiFileOrderDuli: 'null',
   uiTimeFolderFormate: 'yyyy-MM-dd HH-mm-ss',
@@ -247,7 +253,9 @@ function _loadSetting(val: any) {
 
   setting.uiEnableOpenApi = defaultBool(val.uiEnableOpenApi, false)
   setting.uiOpenApi = defaultString(val.uiOpenApi, '')
-  setting.uiOpenApiToken = defaultString(val.uiOpenApiToken, '')
+  setting.uiOpenApiOauthUrl = defaultString(val.uiOpenApiOauthUrl, '')
+  setting.uiOpenApiAccessToken = defaultString(val.uiOpenApiAccessToken, '')
+  setting.uiOpenApiRefreshToken = defaultString(val.uiOpenApiRefreshToken, '')
   setting.uiOpenApiClientId = defaultString(val.uiOpenApiClientId, '')
   setting.uiOpenApiClientSecret = defaultString(val.uiOpenApiClientSecret, '')
 
@@ -381,6 +389,9 @@ const useSettingStore = defineStore('setting', {
   getters: {
     AriaIsLocal(state: SettingState): boolean {
       return state.ariaState == 'local'
+    },
+    OpenApiAccessToken(state: SettingState): string {
+      return state.uiOpenApiAccessToken
     }
   },
   actions: {

@@ -158,8 +158,9 @@ export async function AriaChangeToRemote() {
 export async function AriaChangeToLocal() {
   CloseRemote()
   try {
+    let port = 16800
     if (Aria2EngineLocal == undefined) {
-      const port = window.WebRelaunchAria ? await window.WebRelaunchAria() : 16800
+      port = window.WebRelaunchAria ? await window.WebRelaunchAria() : 16800
       const options = { host: '127.0.0.1', port, secure: false, secret: localPwd, path: '/jsonrpc' }
       Aria2EngineLocal = new Aria2({ WebSocket: global.WebSocket, fetch: global.fetch, ...options })
       Aria2EngineLocal.on('close', () => {
@@ -185,7 +186,7 @@ export async function AriaChangeToLocal() {
       })
 
     if (!IsAria2cOnlineLocal) {
-      const url = '127.0.0.1:16800 secret=' + localPwd
+      const url = `127.0.0.1:${port} secret=${localPwd}`
       if (Aria2cLocalRelanchTime < 2) message.error('无法连接到本地Aria2 ' + url)
     } else {
       await AriaGlobalSpeed()

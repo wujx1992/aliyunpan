@@ -43,6 +43,7 @@ function HttpCodeBreak(code: number): Boolean {
   // if (code == 403) return true
   if (code == 404) return true
   if (code == 409) return true
+  if (code == 429) return true
   return false
 }
 
@@ -102,21 +103,20 @@ export default class AliHttp {
             if (token && window.IsMainPage) {
               if (!useSettingStore().uiEnableOpenApi) {
                 return await AliUser.ApiTokenRefreshAccount(token, true).then((isLogin: boolean) => {
-                  return {code: 401, header: '', body: 'NetError 账号需要重新登录'} as IUrlRespData
+                  return { code: 401, header: '', body: 'NetError 账号需要重新登录' } as IUrlRespData
                 })
               } else {
-                if (useSettingStore().uiOpenApi === 'qrCode') {
-                  return await AliUser.OpenApiTokenRefreshAccount(token, true).then((isLogin: boolean) => {
-                    return {code: 401, header: '', body: 'NetError 账号需要重新登录'} as IUrlRespData
-                  })
-                } else {
-                  message.error('OpenApiToken失效或未填写，请获取后填入')
-                  return {code: 403, header: '', body: 'OpenApiToken失效或未填写，请获取后填入'} as IUrlRespData
-                }
+                return await AliUser.OpenApiTokenRefreshAccount(token, true).then((isLogin: boolean) => {
+                  return { code: 401, header: '', body: 'OpenApiRefreshToken失效或未填写，请获取后填入' } as IUrlRespData
+                })
               }
             } else {
               return { code: 402, header: '', body: 'NetError 账号需要重新登录' } as IUrlRespData
             }
+          }
+
+          if (data.code == 'Too Many Requests') {
+            return { code: 429, header: '', body: '获取OpenApiAccessToken失败，请勿重复请求' } as IUrlRespData
           }
 
           // 自动刷新Session
