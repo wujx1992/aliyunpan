@@ -116,7 +116,10 @@ export default class AliUser {
 
 
   static async OpenApiTokenRefreshAccount(token: ITokenInfo, showMessage: boolean): Promise<boolean> {
-    if (!token.open_api_refresh_token) return false
+    if (!token.open_api_refresh_token) {
+      message.error('OpenApiRefreshToken不能为空，请检查配置')
+      return false
+    }
     while (true) {
       const lock = OpenApiTokenLockMap.has(token.user_id)
       if (lock) await Sleep(1000)
