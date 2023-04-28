@@ -9,6 +9,8 @@ export interface ITokenInfo {
   access_token: string
   refresh_token: string
 
+  open_api_client_id: string
+  open_api_client_secret: string
   open_api_access_token: string
   open_api_refresh_token: string
 

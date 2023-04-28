@@ -15,13 +15,39 @@ const qrCodeUrl = ref('')
 
 const cb = (val: any) => {
     if (!Object.hasOwn(val, 'uiEnableOpenApi')) {
-        if (!val.uiOpenApiOauthUrl && settingStore.uiOpenApiRefreshToken === '') {
-            message.info('RefreshToken不能为空')
+        if (settingStore.uiOpenApiRefreshToken === '' && val.uiOpenApiAccessToken === '') {
+            message.info('AccessToken不能为空')
             return
+        } else {
+            if (!val.uiOpenApiRefreshToken
+                && val.uiOpenApiAccessToken === ''
+                && settingStore.uiOpenApiOauthUrl === '') {
+                message.info('Oauth令牌链接不能为空')
+                return
+            } else if (settingStore.uiOpenApiAccessToken === '' && val.uiOpenApiRefreshToken === '') {
+                message.info('RefreshToken不能为空')
+                return
+            }
         }
-        if (!val.uiOpenApiRefreshToken && settingStore.uiOpenApiOauthUrl === '') {
-            message.info('Oauth令牌链接不能为空')
-            return
+        if (val.uiOpenApiAccessToken !== '') {
+            UserDAL.GetUserTokenFromDB(useUserStore().user_id).then((token) => {
+                if (!token) {
+                    message.info('未登录账号，该功能无法开启')
+                    return
+                }
+                token.open_api_access_token = val.uiOpenApiAccessToken
+                UserDAL.SaveUserToken(token)
+            })
+        }
+        if (val.uiOpenApiRefreshToken !== '') {
+            UserDAL.GetUserTokenFromDB(useUserStore().user_id).then((token) => {
+                if (!token) {
+                    message.info('未登录账号，该功能无法开启')
+                    return
+                }
+                token.open_api_refresh_token = val.uiOpenApiRefreshToken
+                UserDAL.SaveUserToken(token)
+            })
         }
     }
     settingStore.updateStore(val)
@@ -60,10 +86,12 @@ const refreshQrCode = async () => {
     setTimeout(refresh, 3000)
     UserDAL.GetUserTokenFromDB(useUserStore().user_id).then((token) => {
         if (!token) {
-            message.error('未登录账号!')
+            message.error('未登录账号，该功能无法开启')
             return
         }
-        AliUser.OpenApiQrCodeUrl().then(url => {
+        token.open_api_client_id = uiOpenApiClientId.value
+        token.open_api_client_secret = uiOpenApiClientSecret.value
+        AliUser.OpenApiQrCodeUrl(token).then(url => {
             qrCodeLoading.value = false
             if (!url) return
             qrCodeUrl.value = url
@@ -80,9 +108,11 @@ const refreshQrCode = async () => {
                     return
                 }
                 if (statusCode === 'LoginSuccess') {
-                    let { open_api_access_token, open_api_refresh_token } = await AliUser.OpenApiLoginByAuthCode(authCode)
+                    let { open_api_access_token, open_api_refresh_token } = await AliUser.OpenApiLoginByAuthCode(token, authCode)
                     // 更新token
                     useSettingStore().updateStore( {
+                        uiOpenApiClientId: uiOpenApiClientId.value,
+                        uiOpenApiClientSecret: uiOpenApiClientSecret.value,
                         uiOpenApiAccessToken: open_api_access_token,
                         uiOpenApiRefreshToken: open_api_refresh_token
                     })
@@ -90,13 +120,6 @@ const refreshQrCode = async () => {
                     token.open_api_refresh_token = open_api_refresh_token
                     qrCodeUrl.value = ''
                     qrCodeLoading.value = false
-                    window.WebUserToken({
-                        user_id: token.user_id,
-                        name: token.name,
-                        open_api_access_token: open_api_access_token,
-                        refresh: false,
-                        open_api_refresh_token: true
-                    })
                     UserDAL.SaveUserToken(token)
                     clearInterval(intervalId)
                     return
@@ -214,7 +237,9 @@ const refreshQrCode = async () => {
                                     @keydown="(e:any) => e.stopPropagation()"
                                     :autoSize="{ minRows: 2 }"
                                     tabindex="-1"
-                                    placeholder="没有不填，有效期3个小时"/>
+                                    placeholder="没有不填，有效期3个小时"
+                                    :disabled="settingStore.uiOpenApiRefreshToken !== ''"
+                                    :allow-clear="settingStore.uiOpenApiRefreshToken !== ''"/>
                     </div>
                     <div class="settingspace"></div>
                     <div class="settinghead">:RefreshToken</div>
@@ -224,7 +249,8 @@ const refreshQrCode = async () => {
                                     @keydown="(e:any) => e.stopPropagation()"
                                     :autoSize="{ minRows: 2 }"
                                     tabindex="-1"
-                                    placeholder="用于刷新AccessToken"/>
+                                    placeholder="用于刷新AccessToken"
+                                    allow-clear/>
                     </div>
                 </template>
             </template>

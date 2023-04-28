@@ -9,7 +9,8 @@ import {
   useMyFollowingStore,
   useOtherFollowingStore,
   useAppStore,
-  useFootStore
+  useFootStore,
+  useSettingStore
 } from '../store'
 import PanDAL from '../pan/pandal'
 import DebugLog from '../utils/debuglog'
@@ -105,6 +106,8 @@ export default class UserDAL {
       access_token: '',
       refresh_token: '',
 
+      open_api_client_id: '',
+      open_api_client_secret: '',
       open_api_access_token: '',
       open_api_refresh_token: '',
 
@@ -198,14 +201,11 @@ export default class UserDAL {
       login: true
     })
 
-
     useAppStore().resetTab()
-
     useMyShareStore().$reset()
     useMyFollowingStore().$reset()
     useOtherFollowingStore().$reset()
     useFootStore().mSaveUserInfo(token)
-
 
     PanDAL.aReLoadDrive(token.user_id, token.default_drive_id)
     PanDAL.aReLoadQuickFile(token.user_id)
@@ -250,17 +250,21 @@ export default class UserDAL {
   static async UserChange(user_id: string): Promise<boolean> {
     if (!UserTokenMap.has(user_id)) return false
     const token = UserTokenMap.get(user_id)!
-
+    // 切换账号
     const isLogin = token.user_id && (await AliUser.ApiTokenRefreshAccount(token, false))
-    if (isLogin == false) {
+    if (!isLogin) {
       message.warning('该账号需要重新登陆[' + token.name + ']')
       DB.deleteUser(user_id)
       UserTokenMap.delete(user_id)
       return false
     }
-
-    await this.UserLogin(token).catch(() => {
+    useSettingStore().updateStore( {
+      uiOpenApiClientId: token.open_api_client_id,
+      uiOpenApiClientSecret: token.open_api_client_secret,
+      uiOpenApiAccessToken: token.open_api_access_token,
+      uiOpenApiRefreshToken: token.open_api_refresh_token
     })
+    await this.UserLogin(token).catch(() => {})
     return true
   }
 

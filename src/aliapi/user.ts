@@ -116,7 +116,7 @@ export default class AliUser {
 
 
   static async OpenApiTokenRefreshAccount(token: ITokenInfo, showMessage: boolean): Promise<boolean> {
-    if (!token.open_api_refresh_token && !useSettingStore().uiOpenApiRefreshToken) return false
+    if (!token.open_api_refresh_token) return false
     while (true) {
       const lock = OpenApiTokenLockMap.has(token.user_id)
       if (lock) await Sleep(1000)
@@ -133,10 +133,10 @@ export default class AliUser {
       url = useSettingStore().uiOpenApiOauthUrl
     }
     const postData = {
-      refresh_token: token.open_api_refresh_token || useSettingStore().uiOpenApiRefreshToken,
+      refresh_token: token.open_api_refresh_token,
       grant_type: 'refresh_token',
-      client_id: useSettingStore().uiOpenApiClientId,
-      client_secret: useSettingStore().uiOpenApiClientSecret
+      client_id: token.open_api_client_id,
+      client_secret: token.open_api_client_secret
     }
     const resp = await AliHttp.Post(url, postData, '', '')
     OpenApiTokenLockMap.delete(token.user_id)
@@ -164,10 +164,10 @@ export default class AliUser {
     return false
   }
 
-  static async OpenApiQrCodeUrl(): Promise<any> {
+  static async OpenApiQrCodeUrl(token: ITokenInfo): Promise<any> {
     const postData = {
-      client_id: useSettingStore().uiOpenApiClientId,
-      client_secret: useSettingStore().uiOpenApiClientSecret,
+      client_id: token.open_api_client_id,
+      client_secret: token.open_api_client_secret,
       scopes: ['user:base', 'file:all:read', 'file:all:write'],
       width: 348,
       height: 400,
@@ -211,14 +211,14 @@ export default class AliUser {
     return false
   }
 
-  static async OpenApiLoginByAuthCode(authCode: string): Promise<any> {
+  static async OpenApiLoginByAuthCode(token: ITokenInfo, authCode: string): Promise<any> {
     if(!authCode) return false
     // 构造请求体
     const postData = {
       code: authCode,
       grant_type: 'authorization_code',
-      client_id: useSettingStore().uiOpenApiClientId,
-      client_secret: useSettingStore().uiOpenApiClientSecret
+      client_id: token.open_api_client_id,
+      client_secret: token.open_api_client_secret
     }
     const url = 'https://open.aliyundrive.com/oauth/access_token'
     const resp = await AliHttp.Post(url, postData, '', '')
