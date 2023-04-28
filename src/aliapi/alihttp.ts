@@ -336,12 +336,12 @@ export default class AliHttp {
     })
   }
 
-  static async Post(url: string, postData: any, user_id: string, share_token: string, open_api_token?: string): Promise<IUrlRespData> {
+  static async Post(url: string, postData: any, user_id: string, share_token: string, need_open_api: boolean = false): Promise<IUrlRespData> {
     if (!url.startsWith('http') && !url.startsWith('https')) {
       url = (url.includes('adrive/v1.0') ? AliHttp.baseOpenApi : AliHttp.baseApi) + url
     }
     for (let i = 0; i <= 5; i++) {
-      const resp = await AliHttp._Post(url, postData, user_id, share_token, open_api_token)
+      const resp = await AliHttp._Post(url, postData, user_id, share_token, need_open_api)
       if (resp.code == 400 &&
           (url.includes('/file/search')
           || url.includes('/file/list')
@@ -355,7 +355,7 @@ export default class AliHttp {
     return { code: 608, header: '', body: 'NetError PostLost' } as IUrlRespData
   }
 
-  private static _Post(url: string, postData: any, user_id: string, share_token: string, open_api_token?: string): Promise<IUrlRespData> {
+  private static _Post(url: string, postData: any, user_id: string, share_token: string, need_open_api: boolean): Promise<IUrlRespData> {
     const isOpenApi = url.includes('adrive/v1.0')
     return UserDAL.GetUserTokenFromDB(user_id).then((token) => {
       const headers: any = {}
@@ -363,7 +363,11 @@ export default class AliHttp {
         headers['Content-Type'] = 'application/json'
       }
       if (token) {
-        headers['Authorization'] = token.token_type + ' ' + (isOpenApi ? open_api_token : token.access_token)
+        let access_token = token.access_token
+        if (need_open_api && useSettingStore().uiEnableOpenApi && useSettingStore().OpenApiAccessToken) {
+          access_token = useSettingStore().OpenApiAccessToken
+        }
+        headers['Authorization'] = token.token_type + ' ' + access_token
         headers['x-request-id'] = v4().toString()
         headers['x-device-id'] = token.device_id
         headers['x-signature'] = token.signature
