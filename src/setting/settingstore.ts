@@ -252,8 +252,8 @@ function _loadSetting(val: any) {
   setting.uiExitOnClose = defaultBool(val.uiExitOnClose, false)
 
   setting.uiEnableOpenApi = defaultBool(val.uiEnableOpenApi, false)
-  setting.uiOpenApi = defaultString(val.uiOpenApi, '')
-  setting.uiOpenApiOauthUrl = defaultString(val.uiOpenApiOauthUrl, '')
+  setting.uiOpenApi = defaultValue(val.uiOpenApi, ['inputToken', 'qrCode'])
+  setting.uiOpenApiOauthUrl = defaultString(val.uiOpenApiOauthUrl, 'https://api.nn.ci/alist/ali_open/token')
   setting.uiOpenApiAccessToken = defaultString(val.uiOpenApiAccessToken, '')
   setting.uiOpenApiRefreshToken = defaultString(val.uiOpenApiRefreshToken, '')
   setting.uiOpenApiClientId = defaultString(val.uiOpenApiClientId, '')
