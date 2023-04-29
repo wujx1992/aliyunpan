@@ -24,47 +24,23 @@ export default class UserDAL {
     const defaultUser = await DB.getValueString('uiDefaultUser')
     let defaultUserAdd = false
     UserTokenMap.clear()
-    if (defaultUser) {
-
-      try {
-        for (let i = 0, maxi = tokenList.length; i < maxi; i++) {
-          const token = tokenList[i]
-          if (token.user_id == defaultUser && token.user_id) {
-            const isLogin = await AliUser.ApiTokenRefreshAccount(token, false)
-            if (isLogin) {
-              defaultUserAdd = true
-              await this.UserLogin(token).catch(() => {
-              })
-              break
-            }
+    try {
+      for (const token of tokenList) {
+        if (token.user_id && await AliUser.ApiTokenRefreshAccount(token, false)) {
+          if (token.user_id === defaultUser) {
+            defaultUserAdd = true
+            await this.UserLogin(token).catch(() => {})
+          } else if (token.user_id !== defaultUser && !defaultUserAdd) {
+            defaultUserAdd = true
+            await this.UserLogin(token).catch(() => {})
           }
         }
-      } catch (err: any) {
-        DebugLog.mSaveDanger('aLoadFromDB defaultUser', err)
       }
-    }
-
-    for (let i = 0, maxi = tokenList.length; i < maxi; i++) {
-      const token = tokenList[i]
-      try {
-        if (token.user_id != defaultUser && token.user_id) {
-          const isLogin = await AliUser.ApiTokenRefreshAccount(token, false)
-          if (isLogin) {
-            if (defaultUserAdd == false) {
-
-              defaultUserAdd = true
-              await this.UserLogin(token).catch(() => {
-              })
-            }
-          }
-        }
-      } catch (err: any) {
-        DebugLog.mSaveDanger('aLoadFromDB allUser ' + i + ' ' + token.user_id, err)
-      }
+    } catch (err: any) {
+      DebugLog.mSaveDanger('aLoadFromDB loadUser', err)
     }
     console.log('defaultUserAdd', defaultUserAdd)
-    if (defaultUserAdd == false) {
-
+    if (!defaultUserAdd) {
       useUserStore().userShowLogin = true
     }
   }
@@ -106,6 +82,7 @@ export default class UserDAL {
       access_token: '',
       refresh_token: '',
 
+      open_api_enable: false,
       open_api_access_token: '',
       open_api_refresh_token: '',
 
@@ -199,6 +176,7 @@ export default class UserDAL {
       login: true
     })
     useSettingStore().updateStore( {
+      uiEnableOpenApi: token.open_api_enable,
       uiOpenApiAccessToken: token.open_api_access_token,
       uiOpenApiRefreshToken: token.open_api_refresh_token
     })
