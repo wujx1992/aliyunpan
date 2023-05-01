@@ -25,7 +25,7 @@ export default class AliUser {
     }
     SessionLockMap.set(token.user_id, Date.now())
     const time = SessionReTimeMap.get(token.user_id) || 0
-    if (Date.now() - time < 1000) {
+    if (Date.now() - time < 1000 * 60) {
       SessionLockMap.delete(token.user_id)
       return true
     }
@@ -116,19 +116,16 @@ export default class AliUser {
 
 
   static async OpenApiTokenRefreshAccount(token: ITokenInfo, showMessage: boolean): Promise<boolean> {
-    if (!token.open_api_refresh_token) {
-      message.error('OpenApiRefreshToken不能为空，请检查配置')
-      return false
-    }
+    if (!token.open_api_refresh_token) return false
     while (true) {
       const lock = OpenApiTokenLockMap.has(token.user_id)
       if (lock) await Sleep(1000)
       else break
     }
-    TokenLockMap.set(token.user_id, Date.now())
+    OpenApiTokenLockMap.set(token.user_id, Date.now())
     const time = OpenApiTokenReTimeMap.get(token.user_id) || 0
     if (Date.now() - time < 1000 * 60 * 3) {
-      TokenLockMap.delete(token.user_id)
+      OpenApiTokenLockMap.delete(token.user_id)
       return true
     }
     let url = 'https://open.aliyundrive.com/oauth/access_token'

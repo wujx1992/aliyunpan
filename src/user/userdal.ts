@@ -53,23 +53,17 @@ export default class UserDAL {
       const token = tokenList[i]
       try {
         const expire_time = new Date(token.expire_time).getTime()
-
-        if (expire_time - dateNow < 1800000) await AliUser.ApiTokenRefreshAccount(token, false)
-
+        // 每3小时自动刷新
+        if (expire_time - dateNow < 1000 * 60 * 3) {
+          await AliUser.ApiTokenRefreshAccount(token, false)
+          await AliUser.OpenApiTokenRefreshAccount(token, false)
+        }
+        // 每1小时自动刷新
+        if (expire_time - dateNow < 1000 * 60) {
+          await AliUser.ApiSessionRefreshAccount(token,  false)
+        }
       } catch (err: any) {
         DebugLog.mSaveDanger('aRefreshAllUserToken', err)
-      }
-    }
-  }
-
-  static async aRefreshAllUserSession() {
-    const tokenList = await DB.getUserAll()
-    for (let i = 0, maxi = tokenList.length; i < maxi; i++) {
-      const token = tokenList[i]
-      try {
-        await AliUser.ApiSessionRefreshAccount(token,  false)
-      } catch (err: any) {
-        DebugLog.mSaveDanger('aRefreshAllUserSession', err)
       }
     }
   }
@@ -166,8 +160,8 @@ export default class UserDAL {
     // 刷新session
     await AliUser.ApiSessionRefreshAccount(token, true)
     // 保存登录信息
-    useUserStore().userLogin(token.user_id)
     await DB.saveValueString('uiDefaultUser', token.user_id)
+    useUserStore().userLogin(token.user_id)
     UserDAL.SaveUserToken(token)
     window.WebUserToken({
       user_id: token.user_id,
