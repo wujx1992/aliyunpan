@@ -524,7 +524,7 @@ async function creatAria() {
     } else {
       ariaPath = 'aria2c'
     }
-    basePath = path.join(basePath, DEBUGGING ? process.platform : '')
+    basePath = path.join(basePath, DEBUGGING ? path.join(process.platform, process.arch): '')
     let ariaFullPath = path.join(basePath, ariaPath)
     if (!existsSync(ariaFullPath)) {
       ShowError('找不到Aria程序文件', ariaFullPath)

@@ -8,7 +8,7 @@ import message from './message'
 import UserDAL from '../user/userdal'
 import { useSettingStore, useFootStore } from '../store'
 import DebugLog from './debuglog'
-import Config from './config'
+import Config from '../config'
 import AliTrash from '../aliapi/trash'
 
 import path from 'path'

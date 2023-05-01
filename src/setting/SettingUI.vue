@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import useSettingStore from './settingstore'
 import MySwitch from '../layout/MySwitch.vue'
-import Config from '../utils/config'
+import Config from '../config'
 import ServerHttp from '../aliapi/server'
 
 const settingStore = useSettingStore()
