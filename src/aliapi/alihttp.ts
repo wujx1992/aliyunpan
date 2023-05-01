@@ -106,8 +106,8 @@ export default class AliHttp {
                 })
               }
               if (useSettingStore().uiEnableOpenApi) {
-                if (!useSettingStore().OpenApiAccessToken) {
-                  message.error('刷新账号[' + token.user_name + '] OpenApiToken 失败, 请检查配置')
+                if (!useSettingStore().uiOpenApiRefreshToken) {
+                  message.error('自动刷新账号[' + token.user_name + '] OpenApiToken 失败, 请检查配置')
                   return { code: 402, header: '', body: 'OpenApiRefreshToken失效或未填写，请获取后填入' } as IUrlRespData
                 }
                 return await AliUser.OpenApiTokenRefreshAccount(token, true).then((isLogin: boolean) => {
