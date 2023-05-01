@@ -67,5 +67,10 @@
     "artifactName": "${productName}-Setup-${version}.${ext}",
     "allowToChangeInstallationDirectory": true,
     "deleteAppDataOnUninstall": false
+  },
+  "publish": {
+    "provider": "github",
+    "repo": "https://github.com/odomu/aliyunpan.git",
+    "releaseType": "prerelease"
   }
 }
