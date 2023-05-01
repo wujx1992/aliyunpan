@@ -3,7 +3,10 @@
   "description": "阿里云盘小白羊",
   "version": "v3.10.25",
   "main": "dist/electron/main/index.js",
-  "author": "",
+  "author": {
+    "name": "Odomu",
+    "email": "linla1205@163.com"
+  },
   "license": "",
   "scripts": {
     "dev": "vite",
