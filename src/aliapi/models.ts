@@ -16,6 +16,8 @@ export interface IVideoPreviewUrl {
   duration: number
   width: number
   height: number
+  urlQHD: string
+
   urlFHD: string
   urlHD: string
   urlSD: string
@@ -24,6 +26,21 @@ export interface IVideoPreviewUrl {
     language: string
     url: string
   }[]
+}
+
+export interface ICompilationList {
+  name: string
+  type: string
+  width: number
+  height: number
+  duration: number
+  category: string
+  drive_id: string
+  file_id: string
+  url: string
+  expire_sec: number
+  play_cursor: number
+  compilation_id: string
 }
 
 

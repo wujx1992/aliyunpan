@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted } from 'vue'
 import SettingPlay from './SettingPlay.vue'
 import SettingPan from './SettingPan.vue'
 import SettingUI from './SettingUI.vue'
+import SettingAccount from './SettingAccount.vue'
 import SettingDown from './SettingDown.vue'
 import SettingDebug from './SettingDebug.vue'
 import SettingUpload from './SettingUpload.vue'
@@ -31,6 +32,7 @@ onMounted(() => {
   )
 
   observer.observe(document.getElementById('SettingUI')!)
+  observer.observe(document.getElementById('SettingAccount')!)
   observer.observe(document.getElementById('SettingDown')!)
   observer.observe(document.getElementById('SettingUpload')!)
   observer.observe(document.getElementById('SettingPlay')!)
@@ -53,7 +55,11 @@ onUnmounted(() => {
       <a-menu :selected-keys="[appStore.GetAppTabMenu]" :style="{ width: '100%' }" class="xbyleftmenu" @update:selected-keys="appStore.toggleTabMenu('setting', $event[0])">
         <a-menu-item key="SettingUI">
           <template #icon><i class="iconfont iconui" /></template>
-          APP
+          应用
+        </a-menu-item>
+        <a-menu-item key="SettingAccount">
+            <template #icon><i class="iconfont iconrobot" /></template>
+            账户
         </a-menu-item>
         <a-menu-item key="SettingDown">
           <template #icon><i class="iconfont icondownload" /></template>
@@ -94,13 +100,18 @@ onUnmounted(() => {
         <div id="SettingUI">
           <div>
             <div style="height: 10px"></div>
-            <a-divider orientation="center" class="settinghr">APP</a-divider>
+            <a-divider orientation="center" class="settinghr">应用</a-divider>
           </div>
           <SettingUI />
         </div>
+        <div id="SettingAccount">
+            <div>
+                <a-divider orientation="center" class="settinghr">账户</a-divider>
+            </div>
+            <SettingAccount />
+        </div>
         <div id="SettingDown">
           <div>
-            <div style="height: 10px"></div>
             <a-divider orientation="center" class="settinghr">下载</a-divider>
           </div>
           <SettingDown />
@@ -108,49 +119,42 @@ onUnmounted(() => {
 
         <div id="SettingUpload">
           <div>
-            <div style="height: 10px"></div>
             <a-divider orientation="center" class="settinghr">上传</a-divider>
           </div>
           <SettingUpload />
         </div>
         <div id="SettingPlay">
           <div>
-            <div style="height: 10px"></div>
             <a-divider orientation="center" class="settinghr">在线播放</a-divider>
           </div>
           <SettingPlay />
         </div>
         <div id="SettingPan">
           <div>
-            <div style="height: 10px"></div>
             <a-divider orientation="center" class="settinghr">网盘</a-divider>
           </div>
           <SettingPan />
         </div>
         <div id="SettingDebug">
           <div>
-            <div style="height: 10px"></div>
             <a-divider orientation="center" class="settinghr">高级选项</a-divider>
           </div>
           <SettingDebug />
         </div>
         <div id="SettingProxy">
           <div>
-            <div style="height: 10px"></div>
             <a-divider orientation="center" class="settinghr">网络代理</a-divider>
           </div>
           <SettingProxy />
         </div>
         <div id="SettingAria">
           <div>
-            <div style="height: 10px"></div>
             <a-divider orientation="center" class="settinghr">远程Aria</a-divider>
           </div>
           <SettingAria />
         </div>
         <div id="SettingLog">
           <div>
-            <div style="height: 10px"></div>
             <a-divider orientation="center" class="settinghr">运行日志</a-divider>
           </div>
           <div v-if="hideSetting" style="min-height: 602px"></div>

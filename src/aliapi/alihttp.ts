@@ -6,6 +6,7 @@ import AliUser from './user'
 import message from '../utils/message'
 import DebugLog from '../utils/debuglog'
 import { v4 } from 'uuid'
+import { useSettingStore } from '../store'
 
 export interface IUrlRespData {
   code: number
@@ -36,9 +37,9 @@ function BlobToBuff(body: Blob): Promise<ArrayBuffer | undefined> {
 
 function HttpCodeBreak(code: number): Boolean {
   if (code >= 200 && code <= 300) return true
-  // if (code == 400) return true
+  if (code == 400) return true
   // if (code == 401) return true
-  if (code >= 402 && code <= 428) return true
+  if (code >= 402 && code <= 429) return true
   // if (code == 403) return true
   if (code == 404) return true
   if (code == 409) return true
@@ -61,8 +62,9 @@ function Sleep(msTime: number): Promise<{ success: true; time: number }> {
 const IsDebugHttp = false
 export default class AliHttp {
   static LimitMax = 100
-  static baseapi = 'https://api.aliyundrive.com/'
-
+  static baseApi = 'https://api.aliyundrive.com/'
+  static baseOpenApi = 'https://open.aliyundrive.com/'
+  
   static IsSuccess(code: number): Boolean {
     return code >= 200 && code <= 300
   }
@@ -72,37 +74,62 @@ export default class AliHttp {
       if (IsDebugHttp) console.log('CALLURLError ', error)
       const errorMessage = error.display_message || error.message || ''
       if (error.response) {
-        let isNeedLog = true
-        if (error.response.status == 429) isNeedLog = false
-        if (error.response.data && error.response.data.code) {
-          if (error.response.data.code == 'InvalidParameter.Limit') isNeedLog = false
-          if (error.response.data.code == 'ForbiddenFileInTheRecycleBin') isNeedLog = false
-          if (error.response.data.code == 'PreHashMatched') isNeedLog = false
-          if (error.response.data.code == 'InvalidResource.SharePwd') isNeedLog = false
-          if (error.response.data.code == 'ShareLink.Expired') isNeedLog = false
-          if (error.response.data.code == 'FileShareNotAllowed') isNeedLog = false
-          if (error.response.data.code == 'CannotFollowYourself') isNeedLog = false
-          if (error.response.data.code == 'FeatureTemporaryDisabled') isNeedLog = false
-          if (error.response.data.code == 'InvalidParameter.RefreshToken') isNeedLog = false
-          if (error.response.data.code == 'UserDeviceIllegality') isNeedLog = false
-          if (error.response.data.code == 'UserDeviceOffline') isNeedLog = false
-          if (error.response.data.code == 'DeviceSessionSignatureInvalid') isNeedLog = false
+        let { code, status, data = undefined, headers = undefined} = error.response
+        if (code == 'ERR_NETWORK' || (status == 0 && !headers)) {
+          DebugLog.mSaveWarning('HttpError0 message=' + errorMessage)
+          return { code: 600, header: '', body: 'NetError 网络无法连接' } as IUrlRespData
         }
-        if (isNeedLog) DebugLog.mSaveWarning('HttpError4 status=' + error.response.status + ' code=' + error.response.data?.code + ' message=' + errorMessage)
-
-        if (error.response.status == 401) {
-          if (error.response.data && error.response.data.code == 'AccessTokenInvalid') {
-            if (token && window.IsMainPage) {
-              return await AliUser.ApiTokenRefreshAccount(token, true).then((isLogin: boolean) => {
-                return { code: 401, header: '', body: 'NetError 账号需要重新登录' } as IUrlRespData
-              })
+        let isNeedLog = true
+        if (status == 429) isNeedLog = false
+        if (data && data.code) {
+          let errCode = [
+            'InvalidParameter.Limit',
+            'ForbiddenFileInTheRecycleBin',
+            'PreHashMatched',
+            'InvalidResource.SharePwd',
+            'ShareLink.Expired',
+            'FileShareNotAllowed',
+            'CannotFollowYourself',
+            'FeatureTemporaryDisabled',
+            'InvalidParameter.RefreshToken',
+            'UserDeviceIllegality',
+            'UserDeviceOffline',
+            'DeviceSessionSignatureInvalid',
+          ]
+          if (errCode.includes(data.code)) isNeedLog = false
+          // 自动刷新Token
+          if (data.code == 'AccessTokenInvalid') {
+            if (token) {
+              if (!useSettingStore().uiEnableOpenApi && window.IsMainPage) {
+                return await AliUser.ApiTokenRefreshAccount(token, true).then((isLogin: boolean) => {
+                  return { code: 401, header: '', body: 'NetError 账号需要重新登录' } as IUrlRespData
+                })
+              }
+              if (useSettingStore().uiEnableOpenApi) {
+                if (!useSettingStore().uiOpenApiRefreshToken) {
+                  message.error('自动刷新账号[' + token.user_name + '] OpenApiToken 失败, 请检查配置')
+                  return { code: 402, header: '', body: 'OpenApiRefreshToken失效或未填写，请获取后填入' } as IUrlRespData
+                }
+                return await AliUser.OpenApiTokenRefreshAccount(token, true).then((isLogin: boolean) => {
+                  return { code: 401, header: '', body: 'OpenApiRefreshToken失效或未填写，请获取后填入' } as IUrlRespData
+                })
+              }
             } else {
               return { code: 402, header: '', body: 'NetError 账号需要重新登录' } as IUrlRespData
             }
           }
-          if (error.response.data && error.response.data.code == 'UserDeviceOffline') {
+
+          if (data.code == 'Too Many Requests') {
+            message.error('获取OpenApiAccessToken失败，请勿重复请求')
+            return { code: 429, header: '', body: '获取OpenApiAccessToken失败，请勿重复请求' } as IUrlRespData
+          }
+
+          // 自动刷新Session
+          if (data.code == 'UserDeviceIllegality'
+              || data.code == 'UserDeviceOffline'
+              || data.code == 'DeviceSessionSignatureInvalid') {
             if (token) {
-              return await AliUser.ApiSessionRefreshAccount(token, true).then((isLogin: boolean) => {
+              return await AliUser.ApiSessionRefreshAccount(token,  true).then((isLogin: boolean) => {
                 return { code: 401, header: '', body: '刷新Session失败' } as IUrlRespData
               })
             } else {
@@ -110,23 +137,8 @@ export default class AliHttp {
             }
           }
         }
-
-        if (error.response.status == 403 || error.response.status == 400) {
-          if (error.response.data && (error.response.data.code == 'UserDeviceIllegality'
-              || error.response.data.code == 'DeviceSessionSignatureInvalid')) {
-            if (token) {
-              return await AliUser.ApiSessionRefreshAccount(token, true).then((isLogin: boolean) => {
-                return { code: 403, header: '', body: '刷新Session失败' } as IUrlRespData
-              })
-            } else {
-              return { code: 402, header: '', body: 'NetError 账号需要重新登录' } as IUrlRespData
-            }
-          }
-        }
-
-        if (error.code == 'ERR_NETWORK' || (error.response.status == 0 && !error.response.headers)) {
-          DebugLog.mSaveWarning('HttpError0 message=' + errorMessage)
-          return { code: 600, header: '', body: 'NetError 网络无法连接' } as IUrlRespData
+        if (isNeedLog) {
+          DebugLog.mSaveWarning('HttpError4 status=' + status + ' code=' + data?.code + ' message=' + errorMessage)
         }
 
         return {
@@ -134,8 +146,8 @@ export default class AliHttp {
           header: JSON.stringify(error.response.headers),
           body: error.response.data
         } as IUrlRespData
-      } else if (error.request) {
 
+      } else if (error.request) {
         const url = error.config?.url || ''
         if (error.code == 'ECONNABORTED' && (url.indexOf('/batch') > 0 || url.indexOf('/search') > 0 || url.indexOf('/list') > 0)) {
 
@@ -156,14 +168,13 @@ export default class AliHttp {
         return { code: 602, header: '', body: 'NetError ' + errorMessage } as IUrlRespData
       }
     } catch (err: any) {
-
       DebugLog.mSaveWarning('HttpError5', err)
       return { code: 605, header: '', body: 'NetError catch=' + (err.message || '') } as IUrlRespData
     }
   }
 
   static async Get(url: string, user_id: string): Promise<IUrlRespData> {
-    if (url.startsWith('http') == false) url = AliHttp.baseapi + url
+    if (!url.startsWith('http') && !url.startsWith('https')) url = AliHttp.baseApi + url
     for (let i = 0; i <= 5; i++) {
       const resp = await AliHttp._Get(url, user_id)
       if (HttpCodeBreak(resp.code)) return resp
@@ -179,7 +190,7 @@ export default class AliHttp {
       if (token) {
         headers['Authorization'] = token.token_type + ' ' + token.access_token
         headers['x-request-id'] = v4().toString()
-        headers['x-device-id'] = token.deviceId
+        headers['x-device-id'] = token.device_id
         headers['x-signature'] = token.signature
       }
       return axios
@@ -204,7 +215,7 @@ export default class AliHttp {
 
 
   static async GetString(url: string, user_id: string, fileSize: number, maxSize: number): Promise<IUrlRespData> {
-    if (url.startsWith('http') == false) url = AliHttp.baseapi + url
+    if (!url.startsWith('http') && !url.startsWith('https')) url = AliHttp.baseApi + url
     for (let i = 0; i <= 5; i++) {
       const resp = await AliHttp._GetString(url, user_id, fileSize, maxSize)
       if (HttpCodeBreak(resp.code)) return resp
@@ -220,7 +231,7 @@ export default class AliHttp {
       if (token) {
         headers['Authorization'] = token.token_type + ' ' + token.access_token
         headers['x-request-id'] = v4().toString()
-        headers['x-device-id'] = token.deviceId
+        headers['x-device-id'] = token.device_id
         headers['x-signature'] = token.signature
       }
       headers.Range = 'bytes=0-' + (Math.min(fileSize, maxSize) - 1).toString()
@@ -291,7 +302,7 @@ export default class AliHttp {
 
 
   static async GetBlob(url: string, user_id: string): Promise<IUrlRespData> {
-    if (url.startsWith('http') == false) url = AliHttp.baseapi + url
+    if (!url.startsWith('http') && !url.startsWith('https')) url = AliHttp.baseApi + url
     for (let i = 0; i <= 5; i++) {
       const resp = await AliHttp._GetBlob(url, user_id)
       if (HttpCodeBreak(resp.code)) return resp
@@ -307,7 +318,7 @@ export default class AliHttp {
       if (token) {
         headers['Authorization'] = token.token_type + ' ' + token.access_token
         headers['x-request-id'] = v4().toString()
-        headers['x-device-id'] = token.deviceId
+        headers['x-device-id'] = token.device_id
         headers['x-signature'] = token.signature
       }
       return axios
@@ -330,11 +341,18 @@ export default class AliHttp {
     })
   }
 
-  static async Post(url: string, postData: any, user_id: string, share_token: string): Promise<IUrlRespData> {
-    if (!url.startsWith('http')) url = AliHttp.baseapi + url
+  static async Post(url: string, postData: any, user_id: string, share_token: string, need_open_api: boolean = false): Promise<IUrlRespData> {
+    if (!url.startsWith('http') && !url.startsWith('https')) {
+      url = (url.includes('adrive/v1.0') ? AliHttp.baseOpenApi : AliHttp.baseApi) + url
+    }
     for (let i = 0; i <= 5; i++) {
-      const resp = await AliHttp._Post(url, postData, user_id, share_token)
-      if (resp.code == 400 && (url.includes('/file/search') || url.includes('/file/list') || url.includes('/file/walk') || url.includes('/file/scan')) && !resp.body?.code) await Sleep(2000)
+      const resp = await AliHttp._Post(url, postData, user_id, share_token, need_open_api)
+      if (resp.code == 400 &&
+          (url.includes('/file/search')
+          || url.includes('/file/list')
+          || url.includes('/file/walk')
+          || url.includes('/file/scan'))
+          && !resp.body?.code) await Sleep(2000)
       else if (HttpCodeBreak(resp.code)) return resp
       else if (i == 5) return resp
       else await Sleep(2000)
@@ -342,16 +360,20 @@ export default class AliHttp {
     return { code: 608, header: '', body: 'NetError PostLost' } as IUrlRespData
   }
 
-  private static _Post(url: string, postData: any, user_id: string, share_token: string): Promise<IUrlRespData> {
+  private static _Post(url: string, postData: any, user_id: string, share_token: string, need_open_api: boolean): Promise<IUrlRespData> {
     return UserDAL.GetUserTokenFromDB(user_id).then((token) => {
       const headers: any = {}
       if (url.includes('aliyundrive')) {
         headers['Content-Type'] = 'application/json'
       }
       if (token) {
-        headers['Authorization'] = token.token_type + ' ' + token.access_token
-        headers['x-request-id'] = v4().toString().toString()
-        headers['x-device-id'] = token.deviceId
+        let access_token = token.access_token
+        if (need_open_api && useSettingStore().uiEnableOpenApi && useSettingStore().OpenApiAccessToken) {
+          access_token = useSettingStore().OpenApiAccessToken
+        }
+        headers['Authorization'] = token.token_type + ' ' + access_token
+        headers['x-request-id'] = v4().toString()
+        headers['x-device-id'] = token.device_id
         headers['x-signature'] = token.signature
       }
       if (share_token) {
@@ -381,7 +403,7 @@ export default class AliHttp {
   }
 
   static async PostString(url: string, postData: any, user_id: string, share_token: string): Promise<IUrlRespData> {
-    if (url.startsWith('http') == false) url = AliHttp.baseapi + url
+    if (!url.startsWith('http') && !url.startsWith('https')) url = AliHttp.baseApi + url
     for (let i = 0; i <= 5; i++) {
       const resp = await AliHttp._PostString(url, postData, user_id, share_token)
       if (HttpCodeBreak(resp.code)) return resp
@@ -397,7 +419,7 @@ export default class AliHttp {
       if (token) {
         headers['Authorization'] = token.token_type + ' ' + token.access_token
         headers['x-request-id'] = v4().toString()
-        headers['x-device-id'] = token.deviceId
+        headers['x-device-id'] = token.device_id
         headers['x-signature'] = token.signature
       }
       if (share_token) {

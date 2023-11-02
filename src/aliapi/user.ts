@@ -7,9 +7,12 @@ import DebugLog from '../utils/debuglog'
 import { IAliUserDriveCapacity, IAliUserDriveDetails } from './models'
 import { GetSignature } from './utils'
 import getUuid from 'uuid-by-string'
+import { useSettingStore } from '../store'
 
 export const TokenReTimeMap = new Map<string, number>()
 export const TokenLockMap = new Map<string, number>()
+export const OpenApiTokenReTimeMap = new Map<string, number>()
+export const OpenApiTokenLockMap = new Map<string, number>()
 export const SessionLockMap = new Map<string, number>()
 export const SessionReTimeMap = new Map<string, number>()
 export default class AliUser {
@@ -22,33 +25,26 @@ export default class AliUser {
     }
     SessionLockMap.set(token.user_id, Date.now())
     const time = SessionReTimeMap.get(token.user_id) || 0
-    if (Date.now() - time < 1000 * 60 * 5) {
+    if (Date.now() - time < 1000 * 60) {
       SessionLockMap.delete(token.user_id)
       return true
     }
-    const apiUrl = 'https://api.aliyundrive.com/users/v1/users/device/'
-    const sessionUrl = token.nonce > 0 ? 'renew_session' : 'create_session'
-    let { signature, publicKey } = GetSignature(token.nonce, token.user_id, token.deviceId)
+    const apiUrl = 'https://api.aliyundrive.com/users/v1/users/device/create_session'
+    let { signature, publicKey } = GetSignature(0, token.user_id, token.device_id)
     const postData = {
       'deviceName': 'Edge浏览器',
       'modelName': 'Windows网页版',
       'pubKey': publicKey
     }
-    const resp = await AliHttp.Post(apiUrl + sessionUrl, postData, token.user_id, '')
+    const resp = await AliHttp.Post(apiUrl, postData, token.user_id, '')
     SessionLockMap.delete(token.user_id)
     if (AliHttp.IsSuccess(resp.code)) {
       SessionReTimeMap.set(token.user_id, Date.now())
       token.signature = signature
-      token.nonce = token.nonce + 1
-      if(token.nonce > 1073741823){
-        token.nonce = 0
-      }
+      UserDAL.SaveUserToken(token)
       return true
     } else {
-      if (resp.body?.code != 'UserDeviceIllegality') {
-        token.nonce = 0
-        DebugLog.mSaveWarning('ApiSessionRefreshAccount err=' + (resp.code || '') + ' ' + (resp.body?.code || ''))
-      }
+      DebugLog.mSaveWarning('ApiSessionRefreshAccount err=' + (resp.code || '') + ' ' + (resp.body?.code || ''))
       if (showMessage) {
         message.error('刷新账号[' + token.user_name + '] session 失败')
       }
@@ -95,7 +91,7 @@ export default class AliUser {
       token.pin_setup = resp.body.pin_setup
       token.is_first_login = resp.body.is_first_login
       token.need_rp_verify = resp.body.need_rp_verify
-      token.deviceId = getUuid(resp.body.user_id.toString(), 5)
+      token.device_id = getUuid(resp.body.user_id.toString(), 5)
       window.WebUserToken({
         user_id: token.user_id,
         name: token.user_name,
@@ -119,6 +115,133 @@ export default class AliUser {
   }
 
 
+  static async OpenApiTokenRefreshAccount(token: ITokenInfo, showMessage: boolean): Promise<boolean> {
+    if (!token.open_api_refresh_token) return false
+    while (true) {
+      const lock = OpenApiTokenLockMap.has(token.user_id)
+      if (lock) await Sleep(1000)
+      else break
+    }
+    OpenApiTokenLockMap.set(token.user_id, Date.now())
+    const time = OpenApiTokenReTimeMap.get(token.user_id) || 0
+    if (Date.now() - time < 1000 * 60 * 3) {
+      OpenApiTokenLockMap.delete(token.user_id)
+      return true
+    }
+    let url = 'https://open.aliyundrive.com/oauth/access_token'
+    if (useSettingStore().uiEnableOpenApi && useSettingStore().uiOpenApiOauthUrl !== '') {
+      url = useSettingStore().uiOpenApiOauthUrl
+    }
+    const postData = {
+      refresh_token: token.open_api_refresh_token,
+      grant_type: 'refresh_token',
+      client_id: useSettingStore().uiOpenApiClientId,
+      client_secret: useSettingStore().uiOpenApiClientSecret
+    }
+    const resp = await AliHttp.Post(url, postData, '', '')
+    OpenApiTokenLockMap.delete(token.user_id)
+    if (AliHttp.IsSuccess(resp.code)) {
+      OpenApiTokenReTimeMap.set(token.user_id, Date.now())
+      useSettingStore().updateStore( {
+        uiOpenApiAccessToken: resp.body.access_token,
+        uiOpenApiRefreshToken: resp.body.refresh_token
+      })
+      token.open_api_access_token = resp.body.access_token
+      token.open_api_refresh_token = resp.body.refresh_token
+      window.WebUserToken({
+        user_id: token.user_id,
+        name: token.user_name,
+        access_token: token.access_token,
+        open_api_access_token: token.open_api_access_token,
+        refresh: true
+      })
+      UserDAL.SaveUserToken(token)
+      return true
+    } else {
+      if (resp.body?.code != 'InvalidParameter.RefreshToken') {
+        DebugLog.mSaveWarning('OpenApiTokenRefreshAccount err=' + (resp.code || '') + ' ' + (resp.body?.code || ''))
+      }
+      if (resp.body?.code == 429) {
+        message.error('重复获取OpenApiAccessToken，请稍后再试')
+      }
+      if (showMessage) {
+        message.error('刷新账号[' + token.user_name + '] OpenApiToken 失败, 请检查配置')
+      }
+    }
+    return false
+  }
+
+  static async OpenApiQrCodeUrl(token: ITokenInfo): Promise<any> {
+    const postData = {
+      client_id: useSettingStore().uiOpenApiClientId,
+      client_secret: useSettingStore().uiOpenApiClientSecret,
+      scopes: ['user:base', 'file:all:read', 'file:all:write'],
+      width: 348,
+      height: 400,
+    }
+    const url = 'https://open.aliyundrive.com/oauth/authorize/qrcode'
+    const resp = await AliHttp.Post(url, postData, '', '')
+    if (AliHttp.IsSuccess(resp.code)) {
+      return resp.body.qrCodeUrl
+    } else {
+      message.error('获取二维码失败[' + resp.body?.message + ']，请检查配置')
+    }
+    return false
+  }
+
+  static async OpenApiQrCodeStatus(qrCodeUrl: string): Promise<any> {
+    const resp = await AliHttp.Get(qrCodeUrl + '/status', '')
+    const statusJudge = (status: string) => {
+      switch (status) {
+        case 'WaitLogin':
+          return '等待登录'
+        case 'ScanSuccess':
+          return '扫码成功'
+        case 'LoginSuccess':
+          return '登录成功'
+        case 'QRCodeExpired':
+          return '二维码超时'
+        default:
+          return status
+      }
+    }
+    if (AliHttp.IsSuccess(resp.code)) {
+      let statusCode = resp.body.status;
+      return {
+        authCode: statusCode === 'LoginSuccess' ? resp.body.authCode : '',
+        statusCode: statusCode,
+        status: statusJudge(statusCode)
+      }
+    } else {
+      message.error('获取二维码状态失败[' + resp.body?.message + ']，请检查配置')
+    }
+    return false
+  }
+
+  static async OpenApiLoginByAuthCode(token: ITokenInfo, authCode: string): Promise<any> {
+    if(!authCode) return false
+    // 构造请求体
+    const postData = {
+      code: authCode,
+      grant_type: 'authorization_code',
+      client_id: useSettingStore().uiOpenApiClientId,
+      client_secret: useSettingStore().uiOpenApiClientSecret
+    }
+    const url = 'https://open.aliyundrive.com/oauth/access_token'
+    const resp = await AliHttp.Post(url, postData, '', '')
+    if (AliHttp.IsSuccess(resp.code)) {
+      return {
+        open_api_access_token: resp.body.access_token,
+        open_api_refresh_token: resp.body.refresh_token,
+        expires_in: resp.body.expires_in,
+        token_type: resp.body.token_type
+      }
+    } else {
+      message.error('获取授权码失败[' + resp.body?.message + ']')
+    }
+    return false
+  }
+
   static async ApiUserInfo(token: ITokenInfo): Promise<boolean> {
     if (!token.user_id) return false
     const url = 'v2/databox/get_personal_info'
@@ -138,6 +261,42 @@ export default class AliUser {
     return false
   }
 
+  static async ApiUserSign(token: ITokenInfo): Promise<boolean> {
+    if (!token.user_id) return false
+    const signUrl = 'https://member.aliyundrive.com/v1/activity/sign_in_list'
+    const signResp = await AliHttp.Post(signUrl, {}, token.user_id, '')
+    // console.log(JSON.stringify(resp))
+    if (AliHttp.IsSuccess(signResp.code)) {
+      if (!signResp.body || !signResp.body.result) {
+        message.error("签到失败" + signResp.body?.message)
+        return false
+      }
+      let sign_data
+      const { title, signInCount = 0, signInLogs = [] } = signResp.body.result
+      for (let i = 0; i < signInLogs.length - 1; i++) {
+          if (signInLogs[i]['status'] === 'miss') {
+            sign_data = signInLogs[i - 1]
+            break
+         }
+      }
+      const reward = !sign_data['isReward'] ? '无奖励' : `获得${sign_data["reward"]["name"]} ${sign_data["reward"]["description"]}`
+      if (sign_data['isReward']) {
+        const rewardUrl = 'https://member.aliyundrive.com/v1/activity/sign_in_reward'
+        const rewardResp = await AliHttp.Post(rewardUrl, { signInDay: signInCount }, token.user_id, '')
+        if (AliHttp.IsSuccess(rewardResp.code)) {
+          if (!rewardResp.body || !rewardResp.body.result) {
+            message.error('签到后领取奖励失败，请前往手机端领取' + rewardResp.body?.message)
+          }
+        }
+      }
+      message.info(`本月累计签到${signInCount}次，本次签到 ${reward}`)
+      return true
+    } else {
+      message.error("签到失败" + signResp.body?.message)
+    }
+    return false
+  }
+
 
   static async ApiUserVip(token: ITokenInfo): Promise<boolean> {
     if (!token.user_id) return false
@@ -149,7 +308,7 @@ export default class AliUser {
     if (AliHttp.IsSuccess(resp.code)) {
       let vipList = resp.body.vipList || []
       vipList = vipList.sort((a: any, b: any) => b.expire - a.expire)
-      if (vipList.length > 0 && new Date(vipList[0].expire) > new Date()) {
+      if (vipList.length > 0 && new Date(vipList[0].expire * 1000) > new Date()) {
         token.vipname = vipList[0].name
         token.vipexpire = humanDateTime(vipList[0].expire)
       } else {

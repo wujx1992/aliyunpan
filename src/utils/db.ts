@@ -206,11 +206,27 @@ class XBYDB3 extends Dexie {
     if (val) return val
     else return undefined
   }
+
   async getDownedAll(): Promise<IStateDownFile[]> {
     if (!this.isOpen()) await this.open().catch(() => {})
     const list = await this.idowned.where('Info.user_id').equals(useUserStore().user_id).reverse().toArray()
     return list
   }
+
+  async getDownedByTop(limit: number) {
+    if (!this.isOpen()) await this.open().catch(() => {})
+    return await this.transaction('r', this.idowned, () => {
+      return this.idowned.reverse().limit(limit).toArray()
+    })
+  }
+
+  async getDownedTaskCount(): Promise<number> {
+    if (!this.isOpen()) await this.open().catch(() => {})
+    return await this.transaction('r', this.idowned, () => {
+      return this.idowned.count()
+    })
+  }
+
   async deleteDowned(key: string) {
     if (!this.isOpen()) await this.open().catch(() => {})
     return this.idowned.delete(key)
@@ -219,6 +235,16 @@ class XBYDB3 extends Dexie {
     if (!this.isOpen()) await this.open().catch(() => {})
     return this.idowned.bulkDelete(keys)
   }
+
+  async deleteDownedOutCount(max: number): Promise<number> {
+    if (!this.isOpen()) await this.open().catch(() => {})
+    const count = await this.idowned.count()
+    if (count > max) {
+      return this.idowned.limit(max - count).delete()
+    }
+    return 0
+  }
+
   async saveDowned(key: string, value: IStateDownFile) {
     if (!this.isOpen()) await this.open().catch(() => {})
     return this.idowned.put(value, key).catch(() => {})
@@ -287,7 +313,6 @@ class XBYDB3 extends Dexie {
     if (!this.isOpen()) await this.open().catch(() => {})
     return this.iuploaded.where('Info.user_id').equals(useUserStore().user_id).delete()
   }
-
 }
 
 const DB = new XBYDB3()

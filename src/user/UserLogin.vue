@@ -2,7 +2,7 @@
 import { defineComponent } from 'vue'
 import { useUserStore, ITokenInfo } from '../store'
 import UserDAL from '../user/userdal'
-import Config from '../utils/config'
+import Config from '../config'
 import message from '../utils/message'
 import DebugLog from '../utils/debuglog'
 import { GetSignature } from '../aliapi/utils'
@@ -73,11 +73,13 @@ export default defineComponent({
           const result = JSON.parse(jsonstr).pds_login_result
           const deviceId = getUuid(result.userId.toString(), 5)
           const { signature } = GetSignature(0, result.userId.toString(), deviceId)
-          console.log(`deviceId: ${deviceId}, signature: ${signature}`)
           const tk2: ITokenInfo = {
             tokenfrom: 'account' ,
             access_token: result.accessToken,
             refresh_token: result.refreshToken,
+            open_api_enable: false,
+            open_api_access_token: '',
+            open_api_refresh_token: '',
             expires_in: result.expiresIn,
             token_type: result.tokenType,
             user_id: result.userId,
@@ -102,9 +104,8 @@ export default defineComponent({
             pic_drive_id: '',
             vipname: '',
             vipexpire: '',
-            deviceId: deviceId,
-            signature: signature,
-            nonce: 0
+            device_id: deviceId,
+            signature: signature
           }
 
           UserDAL.UserLogin(tk2)

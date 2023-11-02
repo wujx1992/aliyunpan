@@ -27,9 +27,9 @@ const viewlist = ref()
 const inputsearch = ref()
 
 const appStore = useAppStore()
+const settingStore = useSettingStore()
 const winStore = useWinStore()
 const panfileStore = usePanFileStore()
-
 
 let dirID = ''
 panfileStore.$subscribe((_m: any, state: PanFileState) => {
@@ -58,39 +58,39 @@ const keyboardStore = useKeyboardStore()
 keyboardStore.$subscribe((_m: any, state: KeyboardState) => {
   if (appStore.appTab != 'pan') return
 
-  if (TestCtrl('a', state.KeyDownEvent, () => panfileStore.mSelectAll())) return 
-  if (TestCtrl('c', state.KeyDownEvent, () => menuCopySelectedFile(false, 'copy'))) return 
-  if (TestCtrl('x', state.KeyDownEvent, () => menuCopySelectedFile(false, 'cut'))) return 
-  if (TestCtrlShift('Delete', state.KeyDownEvent, () => menuTrashSelectFile(false, true))) return 
-  if (TestCtrl('Delete', state.KeyDownEvent, () => menuTrashSelectFile(false, false))) return 
+  if (TestCtrl('a', state.KeyDownEvent, () => panfileStore.mSelectAll())) return
+  if (TestCtrl('c', state.KeyDownEvent, () => menuCopySelectedFile(false, 'copy'))) return
+  if (TestCtrl('x', state.KeyDownEvent, () => menuCopySelectedFile(false, 'cut'))) return
+  if (TestCtrlShift('Delete', state.KeyDownEvent, () => menuTrashSelectFile(false, true))) return
+  if (TestCtrl('Delete', state.KeyDownEvent, () => menuTrashSelectFile(false, false))) return
   if (
     TestCtrlShift('f', state.KeyDownEvent, () => {
       PanDAL.aReLoadOneDirToShow('', 'search', false)
       setTimeout(() => {
         document.getElementById('searchpanInput')?.focus()
       }, 300)
-    }) 
+    })
   )
-    return 
-  if (TestCtrl('f', state.KeyDownEvent, () => inputsearch.value.focus())) return 
-  if (TestKey('f3', state.KeyDownEvent, () => inputsearch.value.focus())) return 
-  if (TestKey(' ', state.KeyDownEvent, () => inputsearch.value.focus())) return 
-  if (TestCtrlShift('n', state.KeyDownEvent, () => modalCreatNewDir('folder'))) return 
-  if (TestCtrl('n', state.KeyDownEvent, modalCreatNewFile)) return 
-  if (TestCtrlShift('u', state.KeyDownEvent, () => handleUpload('folder'))) return 
-  if (TestCtrl('u', state.KeyDownEvent, () => handleUpload('file'))) return 
-  if (TestCtrl('l', state.KeyDownEvent, modalDaoRuShareLink)) return 
-  if (TestCtrl('h', state.KeyDownEvent, handleHome)) return 
-  if (TestKey('f5', state.KeyDownEvent, handleRefresh)) return 
-  if (TestKey('f6', state.KeyDownEvent, handleDingWei)) return 
-  if (TestKey('Backspace', state.KeyDownEvent, handleBack)) return 
-  if (TestKey('f2', state.KeyDownEvent, () => modalRename(false, panfileStore.IsListSelectedMulti))) return 
-  if (TestCtrl('e', state.KeyDownEvent, () => modalRename(false, panfileStore.IsListSelectedMulti))) return 
-  if (TestCtrl('s', state.KeyDownEvent, () => menuCreatShare(false, 'pan'))) return 
-  if (TestCtrl('g', state.KeyDownEvent, () => menuFavSelectFile(false, !panfileStore.IsListSelectedFavAll))) return 
-  if (TestCtrl('q', state.KeyDownEvent, onSelectRangStart)) return 
-  if (TestKeyboardSelect(state.KeyDownEvent, viewlist.value, panfileStore, handleOpenFile)) return 
-  if (TestKeyboardScroll(state.KeyDownEvent, viewlist.value, panfileStore)) return 
+    return
+  if (TestCtrl('f', state.KeyDownEvent, () => inputsearch.value.focus())) return
+  if (TestKey('f3', state.KeyDownEvent, () => inputsearch.value.focus())) return
+  if (TestKey(' ', state.KeyDownEvent, () => inputsearch.value.focus())) return
+  if (TestCtrlShift('n', state.KeyDownEvent, () => modalCreatNewDir('folder'))) return
+  if (TestCtrl('n', state.KeyDownEvent, modalCreatNewFile)) return
+  if (TestCtrlShift('u', state.KeyDownEvent, () => handleUpload('folder'))) return
+  if (TestCtrl('u', state.KeyDownEvent, () => handleUpload('file'))) return
+  if (TestCtrl('l', state.KeyDownEvent, modalDaoRuShareLink)) return
+  if (TestCtrl('h', state.KeyDownEvent, handleHome)) return
+  if (TestKey('f5', state.KeyDownEvent, handleRefresh)) return
+  if (TestKey('f6', state.KeyDownEvent, handleDingWei)) return
+  if (TestKey('Backspace', state.KeyDownEvent, handleBack)) return
+  if (TestKey('f2', state.KeyDownEvent, () => modalRename(false, panfileStore.IsListSelectedMulti))) return
+  if (TestCtrl('e', state.KeyDownEvent, () => modalRename(false, panfileStore.IsListSelectedMulti))) return
+  if (TestCtrl('s', state.KeyDownEvent, () => menuCreatShare(false, 'pan'))) return
+  if (TestCtrl('g', state.KeyDownEvent, () => menuFavSelectFile(false, !panfileStore.IsListSelectedFavAll))) return
+  if (TestCtrl('q', state.KeyDownEvent, onSelectRangStart)) return
+  if (TestKeyboardSelect(state.KeyDownEvent, viewlist.value, panfileStore, handleOpenFile)) return
+  if (TestKeyboardScroll(state.KeyDownEvent, viewlist.value, panfileStore)) return
 })
 
 const handleRefresh = () => PanDAL.aReLoadOneDirToShow('', 'refresh', false)
@@ -104,16 +104,16 @@ const handleSelect = (file_id: string, event: any, isCtrl: boolean = false) => {
   onHideRightMenuScroll()
 
   if (rangIsSelecting.value) {
-    
+
     if (!rangSelectID.value) {
-      
-      
+
+
       if (!panfileStore.ListSelected.has(file_id)) panfileStore.mMouseSelect(file_id, true, false)
       rangSelectID.value = file_id
       rangSelectStart.value = file_id
       rangSelectFiles.value = { [file_id]: true }
     } else {
-      
+
       const start = rangSelectID.value
       const children = panfileStore.ListDataShow
       let a = -1
@@ -125,7 +125,7 @@ const handleSelect = (file_id: string, event: any, isCtrl: boolean = false) => {
       }
       const fileList: string[] = []
       if (a >= 0 && b >= 0) {
-        if (a > b) [a, b] = [b, a] 
+        if (a > b) [a, b] = [b, a]
         for (let n = a; n <= b; n++) {
           fileList.push(children[n].file_id)
         }
@@ -137,29 +137,29 @@ const handleSelect = (file_id: string, event: any, isCtrl: boolean = false) => {
       rangSelectEnd.value = ''
       rangSelectFiles.value = {}
     }
-    panfileStore.mRefreshListDataShow(false) 
+    panfileStore.mRefreshListDataShow(false)
   } else {
     panfileStore.mMouseSelect(file_id, event.ctrlKey || isCtrl, event.shiftKey)
   }
 }
 
 const handleOpenFile = (event: Event, file: IAliGetFileModel | undefined) => {
-  if (rangIsSelecting.value) return 
+  if (rangIsSelecting.value) return
   if (panfileStore.DirID == 'trash' || panfileStore.DirID == 'recover') {
-    return 
+    return
   }
   if (!file) file = panfileStore.GetSelectedFirst()
   if (!file) return
 
   if (file.isDir) {
-    
+
     PanDAL.aReLoadOneDirToShow('', file.compilation_id ? 'video' + file.name : file.file_id, true)
     return
   }
-  
+
   if (!panfileStore.ListSelected.has(file.file_id)) panfileStore.mMouseSelect(file.file_id, false, false)
 
-  menuOpenFile(file) 
+  menuOpenFile(file)
 }
 
 const handleSearchInput = (value: string) => {
@@ -175,7 +175,7 @@ const menuShowVideo = ref(false)
 const menuShowZip = ref(false)
 const handleRightClick = (e: { event: MouseEvent; node: any }) => {
   const key = e.node.key
-  
+
   if (!panfileStore.ListSelected.has(key)) panfileStore.mMouseSelect(key, false, false)
   const dirType = panfileStore.SelectDirType
   onShowRightMenu(dirType == 'trash' || dirType == 'recover' ? 'rightpantrashmenu' : 'rightpanmenu', e.event.clientX, e.event.clientY)
@@ -200,7 +200,7 @@ const resizeObserver = new ResizeObserver((entries) => {
   }
 })
 const onGridResize = throttle(() => {
-  handleListGridMode(listGridMode.value)
+  handleListGridMode(settingStore.uiFileListMode)
   useFootStore().rightWidth = listGridWidth
 }, 100)
 
@@ -208,11 +208,9 @@ onMounted(() => {
   resizeObserver.observe(document.getElementById('panfilelist')!)
 })
 
-const listGridMode = ref('list')
 const listGridColumn = ref(1)
 const listGridItemHeight = ref(50)
 const handleListGridMode = (mode: string) => {
-  listGridMode.value = mode
   if (mode == 'list') {
     if (listGridItemHeight.value != 50) {
       listGridItemHeight.value = 50
@@ -227,8 +225,8 @@ const handleListGridMode = (mode: string) => {
     if (listGridItemHeight.value != 180) listGridItemHeight.value = 240
     if (listGridColumn.value != count) listGridColumn.value = count
   }
-  useSettingStore().updateStore({ uiFileListMode: mode }) 
-  panfileStore.mGridListData(listGridMode.value, listGridColumn.value)
+  settingStore.updateStore({ uiFileListMode: mode })
+  panfileStore.mGridListData(mode, listGridColumn.value)
 }
 
 
@@ -245,12 +243,12 @@ const onSelectRangStart = () => {
   rangSelectStart.value = ''
   rangSelectEnd.value = ''
   rangSelectFiles.value = {}
-  panfileStore.mRefreshListDataShow(false) 
+  panfileStore.mRefreshListDataShow(false)
 }
 
 const onSelectRang = (file_id: string) => {
   if (rangIsSelecting.value && rangSelectID.value != '') {
-    
+
     let startid = rangSelectID.value
     let endid = ''
     const s: { [k: string]: any } = {}
@@ -264,7 +262,7 @@ const onSelectRang = (file_id: string) => {
     }
     if (a >= 0 && b >= 0) {
       if (a > b) {
-        ;[a, b] = [b, a] 
+        ;[a, b] = [b, a]
         endid = file_id
       } else {
         endid = startid
@@ -278,7 +276,7 @@ const onSelectRang = (file_id: string) => {
     rangSelectStart.value = startid
     rangSelectEnd.value = endid
     rangSelectFiles.value = s
-    panfileStore.mRefreshListDataShow(false) 
+    panfileStore.mRefreshListDataShow(false)
   }
 }
 
@@ -292,7 +290,7 @@ const onRowItemDragStart = (ev: any, file_id: string) => {
 
   onHideRightMenuScroll()
   dragingRowItem.value = true
-  
+
   if (!panfileStore.ListSelected.has(file_id)) panfileStore.mMouseSelect(file_id, false, false)
   const files = panfileStore.GetSelected()
   if (files.length == 0) return
@@ -332,12 +330,12 @@ const onRowItemDragLeave = (ev: any) => {
 const onRowItemDragOver = (ev: any) => {
   if (dragingRowItem.value) {
     ev.stopPropagation()
-    ev.preventDefault() 
+    ev.preventDefault()
   }
 }
 const onRowItemDrop = (ev: any, movetodirid: string) => {
   ev.stopPropagation()
-  ev.preventDefault() 
+  ev.preventDefault()
   ev.target.style.outline = 'none'
   ev.target.style.background = ''
   dropMoveSelectedFile(movetodirid)
@@ -355,7 +353,7 @@ const showDragUpload = ref(false)
 const onPanDrop = (e: any) => {
   if (!e.dataTransfer.files || e.dataTransfer.files.length == 0) return
   e.stopPropagation()
-  e.preventDefault() 
+  e.preventDefault()
   showDragUpload.value = false
 
   if (panfileStore.DirID.startsWith('color')) {
@@ -378,11 +376,11 @@ const onPanDrop = (e: any) => {
     return
   }
 
-  
+
   const filesList = e.dataTransfer.files
   if (filesList && filesList.length > 0) {
     const files: string[] = []
-    
+
     for (let i = 0, maxi = filesList.length; i < maxi; i++) {
       const path = filesList[i].path
       files.push(path)
@@ -405,7 +403,7 @@ const onPanDragLeave = (ev: any) => {
 }
 const onPanDragOver = (ev: any) => {
   ev.stopPropagation()
-  ev.preventDefault() 
+  ev.preventDefault()
 }
 const onPanDragEnd = (ev: any) => {
   if (showDragUpload.value) {
@@ -540,17 +538,17 @@ const onPanDragEnd = (ev: any) => {
     </div>
     <div>
       <AntdTooltip title="列表模式" placement="bottom">
-        <a-button shape="square" type="text" tabindex="-1" :class="listGridMode == 'list' ? 'select active' : 'select'" @click="() => handleListGridMode('list')">
+        <a-button shape="square" type="text" tabindex="-1" :class="settingStore.uiFileListMode === 'list' ? 'select active' : 'select'" @click="() => handleListGridMode('list')">
           <i class="iconfont iconliebiaomoshi" />
         </a-button>
       </AntdTooltip>
       <AntdTooltip title="缩略图模式" placement="bottom">
-        <a-button shape="square" type="text" tabindex="-1" :class="listGridMode == 'image' ? 'select active' : 'select'" @click="() => handleListGridMode('image')">
+        <a-button shape="square" type="text" tabindex="-1" :class="settingStore.uiFileListMode === 'image' ? 'select active' : 'select'" @click="() => handleListGridMode('image')">
           <i class="iconfont iconxiaotumoshi" />
         </a-button>
       </AntdTooltip>
       <AntdTooltip title="大图模式" placement="bottom">
-        <a-button shape="square" type="text" tabindex="-1" :class="listGridMode == 'bigimage' ? 'select active' : 'select'" @click="() => handleListGridMode('bigimage')">
+        <a-button shape="square" type="text" tabindex="-1" :class="settingStore.uiFileListMode === 'bigimage' ? 'select active' : 'select'" @click="() => handleListGridMode('bigimage')">
           <i class="iconfont iconsuoluetumoshi" />
         </a-button>
       </AntdTooltip>
@@ -569,7 +567,7 @@ const onPanDragEnd = (ev: any) => {
       <a-skeleton-line :rows="10" :line-height="50" :line-spacing="50" />
     </a-skeleton>
     <a-list
-      v-else-if="listGridMode == 'list'"
+      v-else-if="settingStore.uiFileListMode === 'list'"
       ref="viewlist"
       :bordered="false"
       :split="false"
@@ -686,7 +684,7 @@ const onPanDragEnd = (ev: any) => {
     </a-list>
 
     <a-list
-      v-else-if="listGridMode == 'image'"
+      v-else-if="settingStore.uiFileListMode === 'image'"
       ref="viewlist"
       :bordered="false"
       :split="false"
@@ -710,7 +708,7 @@ const onPanDragEnd = (ev: any) => {
             <template v-for="(grid, gindex) in item.files" :key="grid.file_id">
               <div
                 v-if="grid.isDir"
-                :class="'griditem ' + listGridMode + ' ' + (panfileStore.ListSelected.has(grid.file_id) ? ' selected' : '') + (panfileStore.ListFocusKey == grid.file_id ? ' focus' : '')"
+                :class="'griditem ' + settingStore.uiFileListMode + ' ' + (panfileStore.ListSelected.has(grid.file_id) ? ' selected' : '') + (panfileStore.ListFocusKey == grid.file_id ? ' focus' : '')"
                 draggable="true"
                 @click="handleSelect(grid.file_id, $event)"
                 @mouseover="() => onSelectRang(grid.file_id)"
@@ -754,7 +752,7 @@ const onPanDragEnd = (ev: any) => {
               </div>
               <div
                 v-else
-                :class="'griditem ' + listGridMode + ' ' + (panfileStore.ListSelected.has(grid.file_id) ? ' selected' : '') + (panfileStore.ListFocusKey == grid.file_id ? ' focus' : '')"
+                :class="'griditem ' + settingStore.uiFileListMode + ' ' + (panfileStore.ListSelected.has(grid.file_id) ? ' selected' : '') + (panfileStore.ListFocusKey == grid.file_id ? ' focus' : '')"
                 draggable="true"
                 @click="handleSelect(grid.file_id, $event)"
                 @mouseover="() => onSelectRang(grid.file_id)"
@@ -823,7 +821,7 @@ const onPanDragEnd = (ev: any) => {
             <template v-for="(grid, gindex) in item.files" :key="grid.file_id">
               <div
                 v-if="grid.isDir"
-                :class="'griditem ' + listGridMode + ' ' + (panfileStore.ListSelected.has(grid.file_id) ? ' selected' : '') + (panfileStore.ListFocusKey == grid.file_id ? ' focus' : '')"
+                :class="'griditem ' + settingStore.uiFileListMode + ' ' + (panfileStore.ListSelected.has(grid.file_id) ? ' selected' : '') + (panfileStore.ListFocusKey == grid.file_id ? ' focus' : '')"
                 draggable="true"
                 @click="handleSelect(grid.file_id, $event)"
                 @mouseover="() => onSelectRang(grid.file_id)"
@@ -868,7 +866,7 @@ const onPanDragEnd = (ev: any) => {
               </div>
               <div
                 v-else
-                :class="'griditem ' + listGridMode + ' ' + (panfileStore.ListSelected.has(grid.file_id) ? ' selected' : '') + (panfileStore.ListFocusKey == grid.file_id ? ' focus' : '')"
+                :class="'griditem ' + settingStore.uiFileListMode + ' ' + (panfileStore.ListSelected.has(grid.file_id) ? ' selected' : '') + (panfileStore.ListFocusKey == grid.file_id ? ' focus' : '')"
                 draggable="true"
                 @click="handleSelect(grid.file_id, $event)"
                 @mouseover="() => onSelectRang(grid.file_id)"

@@ -29,6 +29,8 @@ export interface DownState {
   ListSelectKey: string
 
   ListSearchKey: string
+
+  ListDataCount: number
 }
 
 const useDownStore = defineStore('down', {
@@ -40,13 +42,11 @@ const useDownStore = defineStore('down', {
     ListOrderKey: 'DownID',
     ListFocusKey: '',
     ListSelectKey: '',
-    ListSearchKey: ''
+    ListSearchKey: '',
+    ListDataCount: 0
   }),
 
   getters: {
-    ListDataCount(state: State): number {
-      return state.ListDataShow.length
-    },
 
     IsListSelected(state: State): boolean {
       return state.ListSelected.size > 0
@@ -81,7 +81,7 @@ const useDownStore = defineStore('down', {
 
   actions: {
 
-    aLoadListData(list: Item[]) {
+    aLoadListData(list: Item[], count: number) {
 
       let item: Item
       for (let i = 0, maxi = list.length; i < maxi; i++) {
@@ -97,7 +97,7 @@ const useDownStore = defineStore('down', {
         if (oldSelected.has(key)) newSelected.add(key)
       }
 
-      this.$patch({ ListSelected: newSelected, ListFocusKey: '', ListSelectKey: '', ListSearchKey: '' })
+      this.$patch({ ListSelected: newSelected, ListFocusKey: '', ListSelectKey: '', ListSearchKey: '', ListDataCount: count})
       this.mRefreshListDataShow(true)
     },
 
@@ -128,7 +128,6 @@ const useDownStore = defineStore('down', {
         return
       }
       if (this.ListSearchKey) {
-
         let searchlist: Item[] = []
         let results = fuzzysort.go(this.ListSearchKey, this.ListDataRaw, {
           threshold: -200000,
@@ -141,7 +140,6 @@ const useDownStore = defineStore('down', {
         Object.freeze(searchlist)
         this.ListDataShow = searchlist
       } else {
-
         let ListDataShow = this.ListDataRaw.concat()
         Object.freeze(ListDataShow)
         this.ListDataShow = ListDataShow

@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import useSettingStore from './settingstore'
 import MySwitch from '../layout/MySwitch.vue'
-import Config from '../utils/config'
+import Config from '../config'
 import ServerHttp from '../aliapi/server'
 
 const settingStore = useSettingStore()
@@ -23,9 +23,9 @@ const handleCheckVer = () => {
 <template>
   <div class="settingcard">
     <div class="appver">阿里云盘小白羊版 {{ Config.appVersion }}</div>
-    <div class="appver">
-      <a-button type="outline" size="mini" tabindex="-1" :loading="verLoading" @click="handleCheckVer">检查更新</a-button>
-    </div>
+    <!--<div class="appver">-->
+    <!--  <a-button type="outline" size="mini" tabindex="-1" :loading="verLoading" @click="handleCheckVer">检查更新</a-button>-->
+    <!--</div>-->
     <div class="settingspace"></div>
     <div class="settingspace"></div>
     <div class="settinghead">:界面颜色</div>

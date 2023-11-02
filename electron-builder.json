@@ -1,48 +1,76 @@
 {
   "appId": "com.alixby.app",
-  "productName": "阿里云盘小白羊",
-  "copyright": "3.10.24",
+  "productName": "alixby",
+  "copyright": "copyright ©2023 Odomu",
+  "artifactName": "${productName}-${version}-${arch}.${ext}",
   "asar": true,
-  "directories": {
-    "output": "release"
-  },
-  "extraResources": [
-    { "from": "./aria2c.exe", "to": "."}
-  ],
-  "files": [
-    "dist"
-  ],
+  "compression": "maximum",
+  "directories": { "output": "release" },
+  "files": [ "dist" ],
   "mac": {
-    "icon": "public/favicon.ico",
-    "artifactName": "${productName}v${version}-${arch}.${ext}",
+    "type": "distribution",
+    "darkModeSupport": true,
+    "hardenedRuntime": true,
+    "category": "public.app-category.utilities",
+    "extraResources": [
+      { "from": "./static/engine/darwin/${arch}", "to": "./engine" },
+      { "from": "./static/engine/aria2.conf", "to": "./engine/aria2.conf"},
+      { "from": "./static/crx", "to": "./crx"},
+      { "from": "./app.ico", "to": "."},
+      { "from": "./app.png", "to": "."}
+    ],
     "target": [
-      {
-        "target": "dmg",
-        "arch": ["x64", "arm64"]
-      }
+      { "target": "dmg", "arch": [ "x64", "arm64" ] }
     ]
   },
   "linux": {
-    "icon": "public/favicon.ico",
-    "artifactName": "${productName}v${version}-${arch}.${ext}",
+    "category": "Network",
+    "extraResources": [
+      { "from": "./static/engine/linux/${arch}", "to": "./engine"},
+      { "from": "./static/engine/aria2.conf", "to": "./engine/aria2.conf"},
+      { "from": "./static/crx", "to": "./crx"},
+      { "from": "./app.ico", "to": "."},
+      { "from": "./app.png", "to": "."}
+    ],
     "target": [
-      "AppImage"
+      { "target": "AppImage", "arch": [  "x64", "arm64", "armv7l" ] },
+      { "target": "deb", "arch": [ "x64",  "arm64", "armv7l" ] }
     ]
   },
   "win": {
-    "icon": "public/favicon.ico",
-    "target": [
-      {
-        "target": "nsis",
-        "arch": [ "x64" ]
-      }
+    "icon": "./app.ico",
+    "extraResources": [
+      { "from": "./static/engine/win32/${arch}", "to": "./engine"},
+      { "from": "./static/engine/aria2.conf", "to": "./engine/aria2.conf"},
+      { "from": "./static/crx", "to": "./crx"},
+      { "from": "./app.ico", "to": "."},
+      { "from": "./app.png", "to": "."}
     ],
-    "artifactName": "${productName}v${version}-${arch}.${ext}"
+    "target": [
+      { "target": "nsis", "arch": [ "x64", "ia32" ] },
+      { "target": "zip", "arch": [  "x64", "ia32" ] },
+      { "target": "portable", "arch": [ "x64", "ia32" ] }
+    ]
+  },
+  "dmg": {
+    "window": { "width": 540, "height": 380 },
+    "contents": [
+      {  "x": 410, "y": 230, "type": "link", "path": "/Applications" },
+      { "x": 130, "y": 230, "type": "file" }
+    ]
+  },
+  "portable": {
+    "artifactName": "${productName}-portable-${version}-${arch}.${ext}"
   },
   "nsis": {
     "oneClick": false,
-    "perMachine": false,
+    "artifactName": "${productName}-Setup-${version}.${ext}",
     "allowToChangeInstallationDirectory": true,
     "deleteAppDataOnUninstall": false
+  },
+  "publish": {
+    "provider": "github",
+    "repo": "https://github.com/odomu/aliyunpan.git",
+    "releaseType": "prerelease"
   }
 }
